@@ -7,6 +7,7 @@ S3method(predict, sparseSVM)
 importFrom(stats, coef)
 S3method(coef, sparseSVM)
 
+import(parallel)
 importFrom("grDevices", "hcl")
 importFrom("graphics", "abline", "arrows", "axis", "mtext", "par", "points")
 importFrom("stats", "approx", "lm", "quantile", "sd", "update")
