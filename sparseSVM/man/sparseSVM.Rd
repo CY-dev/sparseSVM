@@ -10,7 +10,6 @@ sparseSVM(X, y, alpha = 1, gamma = 0.1, nlambda=100,
           screen = c("ASR", "SR", "none"), max.iter = 1000, eps = 1e-5, 
           dfmax = ncol(X)+1, penalty.factor=rep(1, ncol(X)), message = FALSE)
 }
-
 \arguments{
   \item{X}{Input matrix.}
   \item{y}{Response vector.}
@@ -86,8 +85,8 @@ sparseSVM(X, y, alpha = 1, gamma = 0.1, nlambda=100,
     conditions. When violations occur, the program adds in violating variables and re-runs 
     the inner loop until convergence. \code{nv} is the number of violations.}
 }
-\author{Congrui Yi <congrui-yi@uiowa.edu>}
-%\seealso{\code{\link{plot.sparseSVM}}, \code{\link{cv.sparseSVM}}}
+\author{Congrui Yi and Yaohui Zeng}
+\seealso{\code{\link{plot.sparseSVM}}, \code{\link{cv.sparseSVM}}}
 \examples{
 X = matrix(rnorm(1000*100), 1000, 100)
 b = 3
