@@ -63,7 +63,7 @@ static void rescale(double *x, double *y, double *x2, double *yx,
   double *shift, double *scale, int n, int p) 
 {
   int i, j, jn; 
-  double cmin, cmax, csum_p, csum_n, csum;
+  double cmin, cmax, crange, csum_p, csum_n, csum;
   for (j=1; j<p; j++) {
     jn = j*n;
     cmin = x[jn]; cmax = x[jn];
@@ -75,10 +75,9 @@ static void rescale(double *x, double *y, double *x2, double *yx,
         cmax = x[jn+i];
       }
     }
-    shift[j] = cmin;
-    scale[j] = cmax-cmin;
+    crange = cmax - cmin;
     for (i=0; i<n; i++) {
-      x[jn+i] = (x[jn+i]-shift[j])/scale[j];
+      x[jn+i] = (x[jn+i]-cmin)/crange;
       x2[jn+i] = pow(x[jn+i], 2);
       yx[jn+i] = y[i]*x[jn+i];
       if (y[i] > 0) {
@@ -88,6 +87,8 @@ static void rescale(double *x, double *y, double *x2, double *yx,
       }
       csum += yx[jn+i];
     }
+    shift[j] = cmin;
+    scale[j] = crange;
     sx_pos[j] = csum_p;
     sx_neg[j] = csum_n;
     syx[j] = csum;
