@@ -9,4 +9,3 @@ Description: Fast algorithm for fitting solution paths of sparse linear SVM with
 License: GPL-3
 NeedsCompilation: yes
 Depends: parallel
-

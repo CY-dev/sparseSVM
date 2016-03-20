@@ -1,5 +1,5 @@
 useDynLib(sparseSVM, .registration=TRUE)
-export(sparseSVM)
+export(sparseSVM, cv.sparseSVM)
 importFrom(graphics, plot)
 S3method(plot, sparseSVM)
 importFrom(stats, predict)
