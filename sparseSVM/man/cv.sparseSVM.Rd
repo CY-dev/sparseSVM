@@ -30,7 +30,6 @@ cv.sparseSVM(X, y, ..., ncores = 1, eval.metric = c("me"),
     progress by announcing the beginning of each CV fold.  Default is
     FALSE. (No trace output when running in parallel even if \code{trace=TRUE}.)}
 }
-}
 \details{
 The function randomly partitions the data in nfolds. It calls hqreg nfolds+1 times, the first
 to obtain the lambda sequence, and the remainder to fit with each of the folds left out once for
