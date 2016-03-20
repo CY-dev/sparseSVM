@@ -19,7 +19,7 @@ static double crossprod(double *yx, double *v, int n, int j) {
   return(sum);
 }
 
-// standardization
+// standardization of features
 static void standardize(double *x, double *y, double *x2, double *yx, 
   double *sx_pos, double *sx_neg, double *syx, 
   double *shift, double *scale, int n, int p) 
@@ -57,7 +57,7 @@ static void standardize(double *x, double *y, double *x2, double *yx,
   }
 } 
 
-// feature rescaling
+// rescaling of features
 static void rescale(double *x, double *y, double *x2, double *yx, 
   double *sx_pos, double *sx_neg, double *syx, 
   double *shift, double *scale, int n, int p) 
@@ -95,6 +95,7 @@ static void rescale(double *x, double *y, double *x2, double *yx,
   }
 }
 
+// postprocessing of feature weights
 static void postprocess(double *w, double *shift, double *scale, int nlam, int p) {
   int l, j, lp; double prod;
   for (l = 0; l<nlam; l++) {
