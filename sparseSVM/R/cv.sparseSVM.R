@@ -110,6 +110,11 @@ cvf <- function(i, XX, y, fold.id, cv.args, trace) {
 # coef(fit, 0.01)
 # predict(fit, X[1:5,], lambda = c(0.02, 0.01))
 # 
-# cv.fit1 <- cv.sparseSVM(X, y, ncores = 4, seed = 1234)
+# cv.fit1 <- cv.sparseSVM(X, y, ncores = 2, seed = 1234)
 # cv.fit2 <- cv.sparseSVM(X, y, seed = 1234)
 # stopifnot(all.equal(cv.fit1, cv.fit2))
+# 
+# plot(cv.fit1)
+# predict(cv.fit1, X)
+
+
