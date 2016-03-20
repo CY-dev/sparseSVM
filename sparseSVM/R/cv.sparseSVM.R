@@ -55,26 +55,29 @@ cv.sparseSVM <- function(X, y, ..., ncores = 1, eval.metric = c("me"),
    }
    ME[fold.id == i, 1:res$nl] <- res$me
  }
- 
+
  ## Return
  me <- apply(ME, 2, mean)
+ me.se <- apply(ME, 2, sd) / sqrt(n)
  ind <- !is.na(me)
  me <- me[ind]
+ me.se <- me.se[ind]
  lambda <- fit$lambda[ind]
  
  if (identical(eval.metric, 'me')) {
+   cve <- me
+   cvse <- me.se
    min <- which.min(me)
    lambda.min <- lambda[min]
  } else {
-   cat("Current version only support \"eval.metric == me\": Misclassification Error.")
+   stop("Current version only support \"eval.metric == me\": Misclassification Error.")
  }
  
  ## TODO: get other metrics: F1 score, precision, recall, confusion matrix.
- val <- list(me = me, lambda = lambda, fit = fit, min = min, 
+ val <- list(cve = cve, cvse = cvse, lambda = lambda, fit = fit, min = min, 
              lambda.min = lambda.min, eval.metric = eval.metric,
              fold.id = fold.id)
  structure(val, class = 'cv.sparseSVM')
- 
 }
 
 cvf <- function(i, XX, y, fold.id, cv.args, trace) {
