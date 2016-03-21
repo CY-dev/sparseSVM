@@ -35,7 +35,7 @@ The function randomly partitions the data in nfolds. It calls \code{sparseSVM} n
 to obtain the lambda sequence, and the remainder to fit with each of the folds left out once for
 validation. The cross-validation error is the average of validation errors for the nfolds fits.
 
-Note by default, the cross-validation fold assignments are balanced across the 1/-1 outcomes, so that each fold has the same proportion of 1/-1 outcomes (or as close to the same proportion as it is possible to achieve if cases do not divide evenly).
+Note by default, the cross-validation fold assignments are balanced across the two classes, so that each fold has the same class proportion (or as close to the same proportion as it is possible to achieve if cases do not divide evenly).
 }
 \value{
 The function returns an object of S3 class "cv.sparseSVM", which is a list containing:
