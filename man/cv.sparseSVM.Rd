@@ -54,7 +54,7 @@ Congrui Yi and Yaohui Zeng
 }
 
 \seealso{
-\code{\link{sparseSVM}}, \code{\link{predict.cv.sparseSVM}, \code{\link{plot.cv.sparseSVM}}}
+\code{\link{sparseSVM}}, \code{\link{predict.cv.sparseSVM}}, \code{\link{plot.cv.sparseSVM}}
 }
 \examples{
 X = matrix(rnorm(1000*100), 1000, 100)
