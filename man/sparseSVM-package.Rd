@@ -7,14 +7,17 @@
 \tabular{ll}{
 Package: \tab sparseSVM\cr
 Type: \tab Package\cr
-Version: \tab 1.0-3\cr
-Date: \tab 2016-03-19\cr
+Version: \tab 1.0-5\cr
+Date: \tab 2016-03-20\cr
 License: \tab GPL-3\cr
 }
-Very simple to use. Accepts \code{X,y} data for binary classification where \code{y} belongs to {+1, -1}, and
-produces the regularized solution path over a grid of values for the regularization parameter \code{lambda}.
+Accepts \code{X,y} data for binary classification where \code{y} belongs to \code{{+1,-1}}, and
+produces the solution path over a grid of values of the regularization parameter \code{lambda}. Also provides functionality for plotting, prediction and parallelized cross-validation.
 }
-\author{Congrui Yi <congrui-yi@uiowa.edu>}
+\author{
+Congrui Yi and Yaohui Zeng \cr
+Maintainer: Congrui Yi <congrui-yi@uiowa.edu>
+}
 \examples{
 X = matrix(rnorm(1000*100), 1000, 100)
 b = 3

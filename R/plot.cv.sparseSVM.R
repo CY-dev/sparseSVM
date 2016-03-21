@@ -1,8 +1,8 @@
 # plot.cv.sparseSVM
 
-plot.cv.sparseSVM <- function(x, log.x = TRUE, nvars = TRUE, ...) {
+plot.cv.sparseSVM <- function(x, log.l = TRUE, nvars = TRUE, ...) {
   l <- x$lambda
-  if (log.x) {
+  if (log.l) {
     l <- log(l)
     xlab <- expression(log(lambda))
   } else {
@@ -55,4 +55,4 @@ plot.cv.sparseSVM <- function(x, log.x = TRUE, nvars = TRUE, ...) {
 # 
 # cv.fit1 <- cv.sparseSVM(X, y, ncores = 4, seed = 1234)
 # plot(cv.fit1)
-# plot(cv.fit1, log.x = FALSE)
+# plot(cv.fit1, log.l = FALSE)

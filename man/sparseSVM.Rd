@@ -4,7 +4,7 @@
 \description{Fit solution paths for sparse linear SVM regularized by lasso or elastic-net over 
 a grid of values for the regularization parameter lambda.}
 \usage{
-sparseSVM(X, y, alpha = 1, gamma = 0.1, nlambda=100, 
+sparseSVM(X, y, alpha = 1, gamma = 0.01, nlambda=100, 
           lambda.min = ifelse(nrow(X)>ncol(X), 0.001, 0.01), 
           lambda, preprocess = c("standardize", "rescale", "none"),  
           screen = c("ASR", "SR", "none"), max.iter = 1000, eps = 1e-5, 
@@ -55,9 +55,9 @@ sparseSVM(X, y, alpha = 1, gamma = 0.1, nlambda=100,
 \details{
   The sequence of models indexed by the regularization parameter \code{lambda} is fitted
   using a semismooth Newton coordinate descent algorithm. The objective function is defined 
-  to be \deqn{\frac{1}{n} \sum hingeLoss(y_i x_i^T w) + \lambda\textrm{penalty}.}{\sum hingeLoss(y_i x_i^T w) /n + \lambda*penalty.}
+  to be \deqn{\frac{1}{n} \sum hingeLoss(y_i (x_i' w + b)) + \lambda\textrm{penalty}(w).}{\sum hingeLoss(y_i (x_i' w + b))/n + \lambda*penalty(w).}
   where 
-  \deqn{hingeLoss(t) = max(0, 1-t)} and the intercept is unpenalized. 
+  \deqn{hingeLoss(t) = max(0, 1-t)} and the intercept \code{b} is unpenalized. 
 
   The program supports different types of preprocessing techniques. They are applied to 
   each column of the input matrix \code{X}. Let x be a column of \code{X}. For 
@@ -81,11 +81,11 @@ sparseSVM(X, y, alpha = 1, gamma = 0.1, nlambda=100,
   \item{alpha}{Same as above.}
   \item{gamma}{Same as above.}
   \item{penalty.factor}{Same as above.}
-  \item{nv}{The variable screening rules are accompanied with checks of optimality 
-    conditions. When violations occur, the program adds in violating variables and re-runs 
-    the inner loop until convergence. \code{nv} is the number of violations.}
 }
-\author{Congrui Yi and Yaohui Zeng}
+\author{
+Congrui Yi and Yaohui Zeng \cr
+Maintainer: Congrui Yi <congrui-yi@uiowa.edu>
+}
 \seealso{\code{\link{plot.sparseSVM}}, \code{\link{cv.sparseSVM}}}
 \examples{
 X = matrix(rnorm(1000*100), 1000, 100)

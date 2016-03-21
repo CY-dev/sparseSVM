@@ -110,7 +110,7 @@ static void postprocess(double *w, double *shift, double *scale, int nlam, int p
 }
 
 // Semismooth Newton Coordinate Descent (SNCD) for lasso/elastic-net regularized SVM
-static void sparse_svm(double *w, int *iter, double *lambda, int *saturated, int *numv, double *x, double *y, 
+static void sparse_svm(double *w, int *iter, double *lambda, int *saturated, double *x, double *y, 
   double *pf, double *gamma_, double *alpha_, double *thresh_, double *lambda_min_, int *nlam_, int *n_, int *p_, 
   int *ppflag_, int *scrflag_, int *dfmax_, int *max_iter_, int *user_, int *message_)
 {
@@ -380,7 +380,6 @@ static void sparse_svm(double *w, int *iter, double *lambda, int *saturated, int
     //Rprintf("iter[%d] = %d, w[0] = %f\n", l+1, iter[l], w[l*p]);
   }
   if (scrflag != 0 && message) Rprintf("# violations detected and fixed: %d\n", nv);
-  numv[0] = nv;
   // Postprocessing
   if (ppflag) postprocess(w, shift, scale, nlam, p);
 
@@ -401,7 +400,7 @@ static void sparse_svm(double *w, int *iter, double *lambda, int *saturated, int
 }
 
 static const R_CMethodDef cMethods[] = {
-  {"sparse_svm", (DL_FUNC) &sparse_svm, 21},
+  {"sparse_svm", (DL_FUNC) &sparse_svm, 20},
   {NULL}
 };
 

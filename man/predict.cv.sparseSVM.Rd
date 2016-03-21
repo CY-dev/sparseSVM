@@ -25,7 +25,8 @@
 }
 \value{The object returned depends on type.}
 \author{
-Congrui Yi and Yaohui Zeng
+Congrui Yi and Yaohui Zeng \cr
+Maintainer: Congrui Yi <congrui-yi@uiowa.edu>
 }
 \seealso{\code{\link{sparseSVM}}, \code{\link{cv.sparseSVM}}}
 \examples{
@@ -35,11 +36,11 @@ w = 5*rnorm(10)
 eps = rnorm(1000)
 y = sign(b + drop(X[,1:10] \%*\% w + eps))
 
-cv.fit1 <- cv.sparseSVM(X, y, ncores = 2, seed = 1234)
-predict(cv.fit1, X)
-predict(cv.fit1, type = 'nvars')
-predict(cv.fit1, type = 'coef')
-coef(cv.fit1)
+cv.fit <- cv.sparseSVM(X, y, ncores = 2, seed = 1234)
+predict(cv.fit, X)
+predict(cv.fit, type = 'nvars')
+predict(cv.fit, type = 'coef')
+coef(cv.fit)
 
 }
 \keyword{models}

@@ -24,7 +24,10 @@
   \item{\dots}{Not used. Other arguments to predict.}
 }
 \value{The object returned depends on type.}
-\author{Congrui Yi <congrui-yi@uiowa.edu>}
+\author{
+Congrui Yi and Yaohui Zeng \cr
+Maintainer: Congrui Yi <congrui-yi@uiowa.edu>
+}
 \seealso{\code{\link{sparseSVM}}}
 \examples{
 X = matrix(rnorm(1000*100), 1000, 100)
