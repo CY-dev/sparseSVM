@@ -14,7 +14,10 @@ predict.sparseSVM <- function(object, X, lambda, type=c("class","coefficients","
     if (is.matrix(w)) return(apply(w!=0, 2, sum))
     else return(sum(w!=0))
   }
-  if (type == "class") return(sign(sweep(X %*% w, 2, b, "+")))
+  if (type == "class") {
+    v <- sweep(X %*% w, 2, b, "+")
+    return(ifelse(v > 0, object$levels[1], object$levels[2]))
+  }
 }
 
 coef.sparseSVM <- function(object, lambda, exact = FALSE, ...) {

@@ -39,20 +39,3 @@ plot.cv.sparseSVM <- function(x, log.l = TRUE, nvars = TRUE, ...) {
     mtext("Variables selected", cex=0.8, line=1.5)
   }
 }
-
-# dyn.load("src/sparseSVM.so")
-# source("R/sparseSVM.R")
-# source("R/plot.sparseSVM.R")
-# source("R/predict.sparseSVM.R")
-# source("R/cv.sparseSVM.R")
-# require(parallel)
-# 
-# X = matrix(rnorm(1000*100), 1000, 100)
-# b = 3
-# w = 5*rnorm(10)
-# eps = rnorm(1000)
-# y = sign(b + drop(X[,1:10] %*% w + eps))
-# 
-# cv.fit1 <- cv.sparseSVM(X, y, ncores = 4, seed = 1234)
-# plot(cv.fit1)
-# plot(cv.fit1, log.l = FALSE)

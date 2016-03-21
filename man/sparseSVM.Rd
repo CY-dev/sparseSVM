@@ -4,7 +4,7 @@
 \description{Fit solution paths for sparse linear SVM regularized by lasso or elastic-net over 
 a grid of values for the regularization parameter lambda.}
 \usage{
-sparseSVM(X, y, alpha = 1, gamma = 0.01, nlambda=100, 
+sparseSVM(X, y, alpha = 1, gamma = 0.1, nlambda=100, 
           lambda.min = ifelse(nrow(X)>ncol(X), 0.001, 0.01), 
           lambda, preprocess = c("standardize", "rescale", "none"),  
           screen = c("ASR", "SR", "none"), max.iter = 1000, eps = 1e-5, 
@@ -12,11 +12,11 @@ sparseSVM(X, y, alpha = 1, gamma = 0.01, nlambda=100,
 }
 \arguments{
   \item{X}{Input matrix.}
-  \item{y}{Response vector.}
+  \item{y}{Output vector. Currently the function only supports binary output and converts the output into +1/-1 coding internally.}
   \item{alpha}{The elastic-net mixing parameter that controls the relative contribution 
     from the lasso and the ridge penalty. It must be a number between 0 and 1. \code{alpha=1} 
     is the lasso penalty and \code{alpha=0} the ridge penalty.}
-  \item{gamma}{The tuning parameter for huberization smoothing of hinge loss. Default is 0.01.}
+  \item{gamma}{The tuning parameter for huberization smoothing of hinge loss. Default is 0.1.}
   \item{nlambda}{The number of lambda values.  Default is 100.}
   \item{lambda.min}{The smallest value for lambda, as a fraction of lambda.max, the data 
     derived entry value. 
@@ -81,6 +81,7 @@ sparseSVM(X, y, alpha = 1, gamma = 0.01, nlambda=100,
   \item{alpha}{Same as above.}
   \item{gamma}{Same as above.}
   \item{penalty.factor}{Same as above.}
+  \item{levels}{Levels of the output class labels.}
 }
 \author{
 Congrui Yi and Yaohui Zeng \cr

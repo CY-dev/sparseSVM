@@ -2,21 +2,22 @@ cv.sparseSVM <- function(X, y, ..., ncores = 1, eval.metric = c("me"),
                          nfolds = 10, fold.id, seed, trace = FALSE) {
  eval.metric <- match.arg(eval.metric)
  fit <- sparseSVM(X, y, ...)
+ levels <- fit$levels
  cv.args <- list(...)
  cv.args$lambda <- fit$lambda
  n <- length(y)
  if (!missing(seed)) set.seed(seed)
  if(missing(fold.id)) {
    if ((min(table(y)) > nfolds)) {
-     ind1 <- which(y==1)
-     ind0 <- which(y==-1)
+     ind1 <- which(y==levels[1])
+     ind2 <- which(y==levels[2])
      n1 <- length(ind1)
-     n0 <- length(ind0)
+     n2 <- length(ind2)
      cv.ind1 <- ceiling(sample(1:n1)/n1*nfolds)
-     cv.ind0 <- ceiling(sample(1:n0)/n0*nfolds)
+     cv.ind2 <- ceiling(sample(1:n2)/n2*nfolds)
      fold.id <- numeric(n)
-     fold.id[y==1] <- cv.ind1
-     fold.id[y==-1] <- cv.ind0
+     fold.id[y==levels[1]] <- cv.ind1
+     fold.id[y==levels[2]] <- cv.ind2
    } else {
      fold.id <- ceiling(sample(1:n)/n*nfolds)
    }
@@ -34,12 +35,7 @@ cv.sparseSVM <- function(X, y, ..., ncores = 1, eval.metric = c("me"),
    cat("Start parallel computing for cross-validation...")
    clusterExport(cluster, c("fold.id", "X", "y", "cv.args"), 
                  envir=environment())
-   clusterCall(cluster, function() {
-     require(sparseSVM)
-#      dyn.load("src/sparseSVM.so")
-#      source("R/sparseSVM.R")
-#      source("R/predict.sparseSVM.R")
-     })
+   clusterCall(cluster, function() require(sparseSVM))
    fold.results <- parLapply(cl=cluster, X=1:nfolds, fun=cvf, XX=X, y=y, 
                              fold.id=fold.id, cv.args=cv.args)
    stopCluster(cluster)
@@ -73,7 +69,7 @@ cv.sparseSVM <- function(X, y, ..., ncores = 1, eval.metric = c("me"),
    stop("Current version only support \"eval.metric == me\": Misclassification Error.")
  }
  
- ## TODO: get other metrics: F1 score, precision, recall, confusion matrix.
+ ## TODO: get other metrics: AUC, F1 score, confusion matrix.
  val <- list(cve = cve, cvse = cvse, lambda = lambda, fit = fit, min = min, 
              lambda.min = lambda.min, eval.metric = eval.metric,
              fold.id = fold.id)
@@ -92,29 +88,3 @@ cvf <- function(i, XX, y, fold.id, cv.args) {
   me <- (yhat != y2)
   list(me = me, nl = length(fit.i$lambda))
 }
-
-# # Test cv.sparseSVM
-# dyn.load("src/sparseSVM.so")
-# source("R/sparseSVM.R")
-# source("R/plot.sparseSVM.R")
-# source("R/predict.sparseSVM.R")
-# require(parallel)
-# 
-# X = matrix(rnorm(1000*100), 1000, 100)
-# b = 3
-# w = 5*rnorm(10)
-# eps = rnorm(1000)
-# y = sign(b + drop(X[,1:10] %*% w + eps))
-# 
-# fit = sparseSVM(X, y)
-# coef(fit, 0.01)
-# predict(fit, X[1:5,], lambda = c(0.02, 0.01))
-# 
-# cv.fit1 <- cv.sparseSVM(X, y, ncores = 2, seed = 1234)
-# cv.fit2 <- cv.sparseSVM(X, y, seed = 1234)
-# stopifnot(all.equal(cv.fit1, cv.fit2))
-# 
-# plot(cv.fit1)
-# predict(cv.fit1, X)
-
-
