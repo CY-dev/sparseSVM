@@ -31,7 +31,7 @@ cv.sparseSVM(X, y, ..., ncores = 1, eval.metric = c("me"),
     FALSE. (No trace output when running in parallel even if \code{trace=TRUE}.)}
 }
 \details{
-The function randomly partitions the data in nfolds. It calls hqreg nfolds+1 times, the first
+The function randomly partitions the data in nfolds. It calls \code{sparseSVM} nfolds+1 times, the first
 to obtain the lambda sequence, and the remainder to fit with each of the folds left out once for
 validation. The cross-validation error is the average of validation errors for the nfolds fits.
 
@@ -39,7 +39,7 @@ Note by default, the cross-validation fold assignments are balanced across the 1
 }
 \value{
 The function returns an object of S3 class "cv.sparseSVM", which is a list containing:
-  \item{cve}{The error for each value of \code{lambda}, averaged across the cross-validation folds.}
+  \item{cve}{The validation error for each value of \code{lambda}, averaged across the cross-validation folds.}
   \item{cvse}{The estimated standard error associated with each value of \code{cve}.}
   \item{lambda}{The values of lambda used in the cross-validation fits.}
   \item{fit}{The fitted \code{sparseSVM} object for the whole data.}
@@ -50,11 +50,12 @@ The function returns an object of S3 class "cv.sparseSVM", which is a list conta
 }
 
 \author{
-Congrui Yi and Yaohui Zeng
+Congrui Yi and Yaohui Zeng \cr
+Maintainer: Congrui Yi <congrui-yi@uiowa.edu>
 }
 
 \seealso{
-\code{\link{sparseSVM}}, \code{\link{predict.cv.sparseSVM}, \code{\link{plot.cv.sparseSVM}}}
+\code{\link{sparseSVM}}, \code{\link{predict.cv.sparseSVM}}, \code{\link{plot.cv.sparseSVM}}
 }
 \examples{
 X = matrix(rnorm(1000*100), 1000, 100)
@@ -66,7 +67,6 @@ y = sign(b + drop(X[,1:10] \%*\% w + eps))
 cv.fit1 <- cv.sparseSVM(X, y, nfolds = 5, ncores = 2, seed = 1234)
 cv.fit2 <- cv.sparseSVM(X, y, nfolds = 5, seed = 1234)
 stopifnot(all.equal(cv.fit1, cv.fit2))
-
 }
 \keyword{models}
 \keyword{classification}

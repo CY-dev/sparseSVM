@@ -18,7 +18,10 @@
     and 1 means opaque), helpful when the number of variables is large.}
   \item{\dots}{Other graphical parameters to \code{plot}.}
 }
-\author{Congrui Yi <congrui-yi@uiowa.edu>}
+\author{
+Congrui Yi and Yaohui Zeng \cr
+Maintainer: Congrui Yi <congrui-yi@uiowa.edu>
+}
 \seealso{\code{\link{sparseSVM}}}
 \examples{
 X = matrix(rnorm(1000*100), 1000, 100)
