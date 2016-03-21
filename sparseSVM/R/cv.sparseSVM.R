@@ -41,7 +41,7 @@ cv.sparseSVM <- function(X, y, ..., ncores = 1, eval.metric = c("me"),
 #      source("R/predict.sparseSVM.R")
      })
    fold.results <- parLapply(cl=cluster, X=1:nfolds, fun=cvf, XX=X, y=y, 
-                             fold.id=fold.id, cv.args=cv.args, trace = trace)
+                             fold.id=fold.id, cv.args=cv.args)
    stopCluster(cluster)
  }
  
@@ -80,7 +80,7 @@ cv.sparseSVM <- function(X, y, ..., ncores = 1, eval.metric = c("me"),
  structure(val, class = 'cv.sparseSVM')
 }
 
-cvf <- function(i, XX, y, fold.id, cv.args, trace) {
+cvf <- function(i, XX, y, fold.id, cv.args) {
   cv.args$X <- XX[fold.id != i, , drop = FALSE]
   cv.args$y <- y[fold.id != i]
 
