@@ -5,4 +5,4 @@
 Solution Paths of Sparse Linear Support Vector Machine with Lasso or ELastic-Net Regularization.
 
 To report bugs：
-* send email to: Congrui yi <congrui-yi@uiowa.edu> and Yaohui Zeng <yaohui-zeng@uiowa.edu>
+* send email to: Congrui Yi <congrui-yi@uiowa.edu> and Yaohui Zeng <yaohui-zeng@uiowa.edu>
