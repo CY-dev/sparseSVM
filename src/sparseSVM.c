@@ -180,15 +180,7 @@ static void sparse_svm(double *w, int *iter, double *lambda, int *saturated, dou
       syx[j] = csum;
     }
   }
-  /*
-  Rprintf("preprocessing done!\n");
-  for (j = 0; j < p; j++) Rprintf("%f ", shift[j]);
-  Rprintf("\n");
-  for (j = 0; j < p; j++) Rprintf("%f ", scale[j]);  
-  Rprintf("\n");
-  for (j = 0; j < p; j++) Rprintf("%f ", syx[j]);
-  Rprintf("\n");
-  */
+
   // Initialization
   if (2*num_pos > n) {
     // initial intercept = 1
