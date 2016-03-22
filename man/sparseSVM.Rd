@@ -1,27 +1,27 @@
 \name{sparseSVM}
 \alias{sparseSVM}
 \title{Fit sparse linear SVM with lasso or elasti-net regularization}
-\description{Fit solution paths for sparse linear SVM regularized by lasso or elastic-net over 
-a grid of values for the regularization parameter lambda.}
+\description{Fit solution paths for sparse linear SVM regularized by lasso or elastic-net 
+over a grid of values for the regularization parameter lambda.}
 \usage{
 sparseSVM(X, y, alpha = 1, gamma = 0.1, nlambda=100, 
-          lambda.min = ifelse(nrow(X)>ncol(X), 0.001, 0.01), 
+	  lambda.min = ifelse(nrow(X)>ncol(X), 0.01, 0.05), 
           lambda, preprocess = c("standardize", "rescale", "none"),  
           screen = c("ASR", "SR", "none"), max.iter = 1000, eps = 1e-5, 
           dfmax = ncol(X)+1, penalty.factor=rep(1, ncol(X)), message = FALSE)
 }
 \arguments{
   \item{X}{Input matrix.}
-  \item{y}{Output vector. Currently the function only supports binary output and converts the output into +1/-1 coding internally.}
+  \item{y}{Output vector. Currently the function only supports binary output and converts 
+    the output into +1/-1 coding internally.}
   \item{alpha}{The elastic-net mixing parameter that controls the relative contribution 
     from the lasso and the ridge penalty. It must be a number between 0 and 1. \code{alpha=1} 
     is the lasso penalty and \code{alpha=0} the ridge penalty.}
   \item{gamma}{The tuning parameter for huberization smoothing of hinge loss. Default is 0.1.}
   \item{nlambda}{The number of lambda values.  Default is 100.}
   \item{lambda.min}{The smallest value for lambda, as a fraction of lambda.max, the data 
-    derived entry value. 
-    Default is 0.001 if the number of observations is larger than the number of variables 
-    and 0.01 otherwise.}
+    derived entry value. Default is 0.01 if the number of observations is larger than the 
+    number of variables and 0.05 otherwise.}
   \item{lambda}{A user-specified sequence of lambda values. Typical usage is to leave 
     blank and have the program automatically compute a \code{lambda} sequence based on 
     \code{nlambda} and \code{lambda.min}. Specifying \code{lambda} overrides this. This 
@@ -83,6 +83,7 @@ sparseSVM(X, y, alpha = 1, gamma = 0.1, nlambda=100,
   \item{penalty.factor}{Same as above.}
   \item{levels}{Levels of the output class labels.}
 }
+
 \author{
 Congrui Yi and Yaohui Zeng \cr
 Maintainer: Congrui Yi <congrui-yi@uiowa.edu>
@@ -96,8 +97,8 @@ eps = rnorm(1000)
 y = sign(b + drop(X[,1:10] \%*\% w + eps))
 
 fit = sparseSVM(X, y)
-coef(fit, 0.01)
-predict(fit, X[1:5,], lambda = c(0.02, 0.01))
+coef(fit, 0.05)
+predict(fit, X[1:5,], lambda = c(0.2, 0.1))
 }
 \keyword{models}
 \keyword{classification}

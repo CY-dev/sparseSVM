@@ -143,18 +143,18 @@ static void sparse_svm(double *w, int *iter, double *lambda, int *saturated, dou
   double *r = Calloc(n, double); // residual: 1-y(xw+b)
   double *s = Calloc(p, double);
   double *d1 = Calloc(n, double);
-  double *d2 = Calloc(n, double); 
+  double *d2 = Calloc(n, double);
   double *z = Calloc(p, double); // partial derivative used for screening: X^t*d1/n
   double cutoff;
-  int *include = Calloc(p, int); 
+  int *include = Calloc(p, int);
   //scrflag = 0: no screening; scrflag = 1: Adaptive Strong Rule(ASR); scrflag = 2: Strong Rule(SR)
   // ASR fits an appropriate strfactor adaptively; SR always uses strfactor = 1
   if (scrflag == 0) {
     for (j=0; j<p; j++) include[j] = 1;
   } else {
-    for (j=0; j<p; j++) if (!pf[j]) include[j] = 1;    
+    for (j=0; j<p; j++) if (!pf[j]) include[j] = 1;
   }
-  int violations = 0, nv = 0; 
+  int violations = 0, nv = 0;
   
   // Preprocessing
   if (ppflag == 1) {
@@ -180,7 +180,15 @@ static void sparse_svm(double *w, int *iter, double *lambda, int *saturated, dou
       syx[j] = csum;
     }
   }
-
+  /*
+  Rprintf("preprocessing done!\n");
+  for (j = 0; j < p; j++) Rprintf("%f ", shift[j]);
+  Rprintf("\n");
+  for (j = 0; j < p; j++) Rprintf("%f ", scale[j]);  
+  Rprintf("\n");
+  for (j = 0; j < p; j++) Rprintf("%f ", syx[j]);
+  Rprintf("\n");
+  */
   // Initialization
   if (2*num_pos > n) {
     // initial intercept = 1
@@ -252,7 +260,7 @@ static void sparse_svm(double *w, int *iter, double *lambda, int *saturated, dou
     l2 = lambda[l]*(1.0-alpha);
     // Variable screening
     if (scrflag != 0) {
-      if (strfactor > 5.0) strfactor = 5.0;
+      if (strfactor > 10.0) strfactor = 10.0;
       if (l!=0) {
         cutoff = alpha*((1.0+strfactor)*lambda[l] - strfactor*lambda[l-1]);
         ldiff = lambda[l-1] - lambda[l];
@@ -288,7 +296,6 @@ static void sparse_svm(double *w, int *iter, double *lambda, int *saturated, dou
               pct += d2[i];
             }
             pct = pct*gamma/n;
-            //if (iter[l]==1 && j==1)Rprintf("l=%d, v1=%lf, v2=%lf, pct=%lf\n",l+1,v1,v2,pct);
             if (pct<0.05 || pct<=1/n) {
               // approximate v2 with a continuation technique
               v2 = 0.0;
@@ -306,18 +313,15 @@ static void sparse_svm(double *w, int *iter, double *lambda, int *saturated, dou
             if (pf[j]==0.0) {
               // unpenalized
               w[lp+j] = w_old[j] + (v1+syx[0])/v2; 
-            } else if (fabs(w_old[j]+s[j])>1.0) { // active
+            } else if (fabs(w_old[j]+s[j]) > 1.0) { // active
               s[j] = sign(w_old[j]+s[j]);
               w[lp+j] = w_old[j] + ((v1+syx[j])/(2*n)-l1*pf[j]*s[j]-l2*pf[j]*w_old[j])/(v2/(2*n)+l2*pf[j]); 
             } else {
               s[j] = (v1+syx[j]+v2*w_old[j])/(2*n*l1*pf[j]);
               w[lp+j] = 0.0;
             }
-            // mark the first mismatch between w and s
-            if (!mismatch && j>0) {
-              if (fabs(s[j]) > 1 || (w[lp+j] != 0 && s[j] != sign(w[lp+j]))) mismatch = 1;
-            }
             // Update r, d1, d2 and compute candidate of max_update
+            //Rprintf("l=%d, v1=%lf, v2=%lf, pct=%lf, change = %lf, mismatch = %d\n",l+1,v1,v2,pct,change,mismatch);
             change = w[lp+j]-w_old[j];
             if (change!=0) {
               for (i=0; i<n; i++) {
@@ -330,11 +334,19 @@ static void sparse_svm(double *w, int *iter, double *lambda, int *saturated, dou
                   d2[i] = 1.0/gamma;
                 }
               }
-              v1 = fabs((v1 + syx[j]))/(2*n) + l1*pf[j];
+              v1 = fabs((v1 + syx[j]))/(2*n);
               v2 = v2/(2*n) + l2*pf[j];
-              update = v1*fabs(change) + 0.5*v2*change*change;
+              //update = v1*fabs(change) + 0.5*v2*change*change;
+              update = v2*change*change;
               if (update>max_update) max_update = update;
               w_old[j] = w[lp+j];
+            }
+            // break at the first mismatch
+            if (mismatch == 0 && j>0) {
+              if (fabs(s[j]) > 1 || (w[lp+j] != 0 && s[j] != sign(w[lp+j]))) {
+                mismatch = 1;
+                break;
+              }
             }
           }
         }
@@ -378,6 +390,11 @@ static void sparse_svm(double *w, int *iter, double *lambda, int *saturated, dou
       nv += violations;
     }
     //Rprintf("iter[%d] = %d, w[0] = %f\n", l+1, iter[l], w[l*p]);
+    if (iter[l] == max_iter) {
+      for (int ll = l; ll<nlam; ll++) iter[ll] = NA_INTEGER;
+      saturated[0] = 1;
+      break;
+    }
   }
   if (scrflag != 0 && message) Rprintf("# violations detected and fixed: %d\n", nv);
   // Postprocessing

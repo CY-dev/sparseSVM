@@ -37,7 +37,7 @@ eps = rnorm(1000)
 y = sign(b + drop(X[,1:10] \%*\% w + eps))
 
 fit = sparseSVM(X, y)
-predict(fit, X[1:5,], lambda = c(0.05, 0.01))
+predict(fit, X[1:5,], lambda = c(0.05, 0.03))
 predict(fit, X[1:5,], lambda = 0.05, exact = TRUE)
 predict(fit, type = "nvars")
 coef(fit, lambda = 0.05)
