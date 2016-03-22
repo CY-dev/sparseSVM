@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/YaohuiZeng/sparseSVM.svg?branch=master)](https://travis-ci.org/YaohuiZeng/sparseSVM)
+[![Build Status](https://travis-ci.org/CY-dev/sparseSVM.svg?branch=master)](https://travis-ci.org/CY-dev/sparseSVM)
 
 # sparseSVM
 Solution Paths of Sparse Linear Support Vector Machine with Lasso or ELastic-Net Regularization
