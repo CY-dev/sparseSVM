@@ -27,7 +27,7 @@ static void standardize(double *x, double *y, double *x2, double *yx,
   int i, j, jn; 
   double xm, xsd, xvar, csum_p, csum_n, csum;
   for (j=1; j<p; j++) {
-    jn = j*n; xm = 0.0; xsd = 0.0; xvar = 0.0; 
+    jn = j*n; xm = 0.0; xvar = 0.0; 
     csum_p = 0.0; csum_n = 0.0; csum = 0.0;
     for (i=0; i<n; i++) xm += x[jn+i];
     xm /= n;
@@ -118,7 +118,7 @@ static void sparse_svm(double *w, int *iter, double *lambda, int *saturated, dou
   double gamma = gamma_[0]; double alpha = alpha_[0]; double thresh = thresh_[0]; double lambda_min = lambda_min_[0]; 
   int nlam = nlam_[0]; int n = n_[0]; int p = p_[0]; int ppflag = ppflag_[0]; int scrflag = scrflag_[0];
   int dfmax = dfmax_[0]; int max_iter = max_iter_[0]; int user = user_[0]; int message = message_[0];
-  int i, j, k, l, lstart, lp, jn, num_pos, converged, mismatch, nnzero = 0;
+  int i, j, l, lstart, lp, jn, num_pos, mismatch, nnzero = 0;
   double csum_p, csum_n, csum, pct, lstep, ldiff, lmax, l1, l2, v1, v2, v3, tmp, change, max_update, update, strfactor = 1.0;  
   double *x2 = Calloc(n*p, double); // x^2
   double *sx_pos = Calloc(p, double); // column sum of x where y = 1
@@ -247,7 +247,7 @@ static void sparse_svm(double *w, int *iter, double *lambda, int *saturated, dou
 
   // Solution path
   for (l=lstart; l<nlam; l++) {
-    converged = 0; lp = l*p;
+    lp = l*p;
     l1 = lambda[l]*alpha;
     l2 = lambda[l]*(1.0-alpha);
     // Variable screening
@@ -266,7 +266,6 @@ static void sparse_svm(double *w, int *iter, double *lambda, int *saturated, dou
       strfactor = 1.0; //reset
     }
     while(iter[l] < max_iter) {
-      converged = 0;
       // Check dfmax
       if (nnzero > dfmax) {
         for (int ll = l; ll<nlam; ll++) iter[ll] = NA_INTEGER;
@@ -326,7 +325,6 @@ static void sparse_svm(double *w, int *iter, double *lambda, int *saturated, dou
                   d2[i] = 1.0/gamma;
                 }
               }
-              v1 = fabs((v1 + syx[j]))/(2*n);
               v2 = v2/(2*n) + l2*pf[j];
               //update = v1*fabs(change) + 0.5*v2*change*change;
               update = v2*change*change;
@@ -346,7 +344,6 @@ static void sparse_svm(double *w, int *iter, double *lambda, int *saturated, dou
         if (iter[l]>5) {
           //Rprintf("%f\n", max_update);
           if (!mismatch && max_update < thresh) {
-            converged = 1;
             break;
           }
         }
@@ -364,7 +361,7 @@ static void sparse_svm(double *w, int *iter, double *lambda, int *saturated, dou
               violations++;
               // pf[j] > 0
               // w_old = w = d = 0, no need for judgement
-              if (violations == 1 & message) Rprintf("Lambda %d\n", l+1);
+              if ((violations == 1) & message) Rprintf("Lambda %d\n", l+1);
               if (message) Rprintf("+V%d", j);
             } else if (scrflag == 1 && ldiff != 0.0) {
               v3 = fabs((v1-z[j])/(pf[j]*ldiff*alpha));
