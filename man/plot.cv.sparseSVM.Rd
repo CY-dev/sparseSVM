@@ -8,7 +8,7 @@
 }
 \arguments{
   \item{x}{A \code{"cv.sparseSVM"} object.}
-  \item{log.l}{Should \code{log(lambda)} be used instead of \code{lambda} when \code{xvar = "lambda"}?  Default is TRUE.}
+  \item{log.l}{Should \code{log(lambda)} be used instead of \code{lambda} for the X-axis?  Default is TRUE.}
   \item{nvars}{If \code{TRUE} (the default), places an axis on top of the plot denoting 
     the number of variables with nonzero coefficients at each \code{lambda}.}
   \item{\dots}{Other graphical parameters to \code{plot}}
