@@ -119,7 +119,7 @@ static void sparse_svm(double *w, int *iter, double *lambda, int *saturated, dou
   int nlam = nlam_[0]; int n = n_[0]; int p = p_[0]; int ppflag = ppflag_[0]; int scrflag = scrflag_[0];
   int dfmax = dfmax_[0]; int max_iter = max_iter_[0]; int user = user_[0]; int message = message_[0];
   int i, j, k, l, lstart, lp, jn, num_pos, mismatch, nnzero = 0;
-  double csum_p, csum_n, csum, pct, lstep, ldiff, lmax, l1, l2, v1, v2, v3, tmp, change, max_update, update, strfactor = 1.0;  
+  double gi = 1.0/gamma, csum_p, csum_n, csum, pct, lstep, ldiff, lmax, l1, l2, v1, v2, v3, tmp, change, max_update, update, strfactor = 1.0;  
   double *x2 = Calloc(n*p, double); // x^2
   double *sx_pos = Calloc(p, double); // column sum of x where y = 1
   double *sx_neg = Calloc(p, double); // column sum of x where y = -1
@@ -190,7 +190,7 @@ static void sparse_svm(double *w, int *iter, double *lambda, int *saturated, dou
       if (y[i] > 0) {
         r[i] = 0.0;
         d1[i] = 0.0;
-        d2[i] = 1.0/gamma;        
+        d2[i] = gi;        
       } else {
         r[i] = 2.0;
         d1[i] = 1.0;
@@ -209,7 +209,7 @@ static void sparse_svm(double *w, int *iter, double *lambda, int *saturated, dou
       } else {
         r[i] = 0.0;
         d1[i] = 0.0;
-        d2[i] = 1.0/gamma;
+        d2[i] = gi;
       }
     }    
   }
@@ -321,8 +321,8 @@ static void sparse_svm(double *w, int *iter, double *lambda, int *saturated, dou
                     d1[i] = sign(r[i]);
                     d2[i] = 0.0;
                   } else {
-                    d1[i] = r[i]/gamma;
-                    d2[i] = 1.0/gamma;
+                    d1[i] = r[i]*gi;
+                    d2[i] = gi;
                   }
                 }
                 //update = v1*fabs(change) + 0.5*v2*change*change;
@@ -368,11 +368,11 @@ static void sparse_svm(double *w, int *iter, double *lambda, int *saturated, dou
       nv += violations;
     }
     //Rprintf("iter[%d] = %d, w[0] = %f\n", l+1, iter[l], w[l*p]);
-    if (iter[l] == max_iter) {
-      for (int ll = l; ll<nlam; ll++) iter[ll] = NA_INTEGER;
-      saturated[0] = 1;
-      break;
-    }
+    //if (iter[l] == max_iter) {
+    //  for (int ll = l; ll<nlam; ll++) iter[ll] = NA_INTEGER;
+    //  saturated[0] = 1;
+    //  break;
+    //}
   }
   if (scrflag != 0 && message) Rprintf("# violations detected and fixed: %d\n", nv);
   // Postprocessing
