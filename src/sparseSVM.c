@@ -118,7 +118,7 @@ static void sparse_svm(double *w, int *iter, double *lambda, int *saturated, dou
   double gamma = gamma_[0]; double alpha = alpha_[0]; double thresh = thresh_[0]; double lambda_min = lambda_min_[0]; 
   int nlam = nlam_[0]; int n = n_[0]; int p = p_[0]; int ppflag = ppflag_[0]; int scrflag = scrflag_[0];
   int dfmax = dfmax_[0]; int max_iter = max_iter_[0]; int user = user_[0]; int message = message_[0];
-  int i, j, l, lstart, lp, jn, num_pos, mismatch, nnzero = 0;
+  int i, j, k, l, lstart, lp, jn, num_pos, mismatch, nnzero = 0;
   double csum_p, csum_n, csum, pct, lstep, ldiff, lmax, l1, l2, v1, v2, v3, tmp, change, max_update, update, strfactor = 1.0;  
   double *x2 = Calloc(n*p, double); // x^2
   double *sx_pos = Calloc(p, double); // column sum of x where y = 1
@@ -234,7 +234,7 @@ static void sparse_svm(double *w, int *iter, double *lambda, int *saturated, dou
   }
   lmax /= alpha;
   
-  // Setup lambda
+  // lambda
   if (user==0) {
     lstart = 1;
     lambda[0] = lmax;
@@ -279,74 +279,63 @@ static void sparse_svm(double *w, int *iter, double *lambda, int *saturated, dou
         mismatch = 0; max_update = 0.0;
         for (j=0; j<p; j++) {
           if (include[j]) {
-            // Calculate v1, v2
-            jn = j*n; v1 = 0.0; v2 = 0.0; pct = 0.0;
-            for (i=0; i<n; i++) {
-              v1 += yx[jn+i]*d1[i];
-              v2 += x2[jn+i]*d2[i];
-              pct += d2[i];
-            }
-            pct = pct*gamma/n;
-            if (pct<0.05 || pct<=1/n) {
-              // approximate v2 with a continuation technique
-              v2 = 0.0;
+            for (k=0; k<5; k++) {
+              update = 0.0; mismatch = 0;
+              // Calculate v1, v2
+              jn = j*n; v1 = 0.0; v2 = 0.0; pct = 0.0;
               for (i=0; i<n; i++) {
-                if (d2[i]) {
-                  v2 += x2[jn+i]*d2[i];
-                } else {
-                  // |r_i|>gamma
-                  v2 += x2[jn+i]*d1[i]/r[i];
+                v1 += yx[jn+i]*d1[i];
+                v2 += x2[jn+i]*d2[i];
+                pct += d2[i];
+              }
+      	      pct = pct*gamma/n; // percentage of residuals with absolute values below gamma
+              if (pct < 0.05 || pct < 1.0/n) {
+                // approximate v2 with a continuation technique
+                for (i=0; i<n; i++) {
+                  temp = fabs(r[i]);
+                  if (temp > gamma) v2 += x2[jn+i]/temp;
                 }
               }
-              // Rprintf("After: v2=%f\n", v2);
-            }
-            // Update w_j
-            if (pf[j]==0.0) {
-              // unpenalized
-              w[lp+j] = w_old[j] + (v1+syx[0])/v2; 
-            } else if (fabs(w_old[j]+s[j]) > 1.0) { // active
-              s[j] = sign(w_old[j]+s[j]);
-              w[lp+j] = w_old[j] + ((v1+syx[j])/(2*n)-l1*pf[j]*s[j]-l2*pf[j]*w_old[j])/(v2/(2*n)+l2*pf[j]); 
-            } else {
-              s[j] = (v1+syx[j]+v2*w_old[j])/(2*n*l1*pf[j]);
-              w[lp+j] = 0.0;
-            }
-            // Update r, d1, d2 and compute candidate of max_update
-            //Rprintf("l=%d, v1=%lf, v2=%lf, pct=%lf, change = %lf, mismatch = %d\n",l+1,v1,v2,pct,change,mismatch);
-            change = w[lp+j]-w_old[j];
-            if (change!=0) {
-              for (i=0; i<n; i++) {
-                r[i] -= yx[jn+i]*change;
-                if (fabs(r[i])>gamma) {
-                  d1[i] = sign(r[i]);
-                  d2[i] = 0.0;
-                } else {
-                  d1[i] = r[i]/gamma;
-                  d2[i] = 1.0/gamma;
+              // Update w_j
+              if (pf[j]==0.0) {
+                // unpenalized
+                w[lp+j] = w_old[j] + (v1+syx[0])/v2; 
+              } else if (fabs(w_old[j]+s[j]) > 1.0) { // active
+                s[j] = sign(w_old[j]+s[j]);
+                w[lp+j] = w_old[j] + ((v1+syx[j])/(2.0*n)-l1*pf[j]*s[j]-l2*pf[j]*w_old[j])/(v2/(2.0*n)+l2*pf[j]); 
+              } else {
+                s[j] = (v1+syx[j]+v2*w_old[j])/(2.0*n*l1*pf[j]);
+                w[lp+j] = 0.0;
+              }
+              // mismatch between beta and s
+              if (pf[j] > 0) {
+                if (fabs(s[j]) > 1 || (w[lp+j] != 0 && s[j] != sign(w[lp+j]))) mismatch = 1;
+              }
+              // Update r, d1, d2 and compute candidate of max_update
+              //Rprintf("l=%d, v1=%lf, v2=%lf, pct=%lf, change = %lf, mismatch = %d\n",l+1,v1,v2,pct,change,mismatch);
+              change = w[lp+j]-w_old[j];
+              if (change>1e-6) {
+                for (i=0; i<n; i++) {
+                  r[i] -= yx[jn+i]*change;
+                  if (fabs(r[i])>gamma) {
+                    d1[i] = sign(r[i]);
+                    d2[i] = 0.0;
+                  } else {
+                    d1[i] = r[i]/gamma;
+                    d2[i] = 1.0/gamma;
+                  }
                 }
+                //update = v1*fabs(change) + 0.5*v2*change*change;
+                update = (v2/(2.0*n)+l2*pf[j])*change*change;
+                if (update>max_update) max_update = update;
+                w_old[j] = w[lp+j];
               }
-              v2 = v2/(2*n) + l2*pf[j];
-              //update = v1*fabs(change) + 0.5*v2*change*change;
-              update = v2*change*change;
-              if (update>max_update) max_update = update;
-              w_old[j] = w[lp+j];
-            }
-            // break at the first mismatch
-            if (mismatch == 0 && j>0) {
-              if (fabs(s[j]) > 1 || (w[lp+j] != 0 && s[j] != sign(w[lp+j]))) {
-                mismatch = 1;
-                break;
-              }
+              if (!mismatch && update < thresh) break;              
             }
           }
         }
         // Check convergence
-        if (iter[l]>5) {
-          //Rprintf("%f\n", max_update);
-          if (!mismatch && max_update < thresh) {
-            break;
-          }
-        }
+        if (max_update < thresh) break;
       }
       // Scan for violations of the screening rule and count nonzero variables
       violations = 0; nnzero = 0;
