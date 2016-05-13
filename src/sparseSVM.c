@@ -292,8 +292,8 @@ static void sparse_svm(double *w, int *iter, double *lambda, int *saturated, dou
               if (pct < 0.05 || pct < 1.0/n) {
                 // approximate v2 with a continuation technique
                 for (i=0; i<n; i++) {
-                  temp = fabs(r[i]);
-                  if (temp > gamma) v2 += x2[jn+i]/temp;
+                  tmp = fabs(r[i]);
+                  if (tmp > gamma) v2 += x2[jn+i]/tmp;
                 }
               }
               // Update w_j
