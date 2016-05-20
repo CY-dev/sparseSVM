@@ -184,9 +184,9 @@ static void sparse_svm(double *w, int *iter, double *lambda, int *saturated, dou
   // Initialization
   if (2*num_pos > n) {
     // initial intercept = 1
-    w[0] = 1;
-    w_old[0] = 1;
-    for (i=0;i<n;i++) {
+    w[0] = 1.0;
+    w_old[0] = 1.0;
+    for (i=0; i<n; i++) {
       if (y[i] > 0) {
         r[i] = 0.0;
         d1[i] = 0.0;
@@ -199,9 +199,9 @@ static void sparse_svm(double *w, int *iter, double *lambda, int *saturated, dou
     }
   } else {
     // initial intercept = -1
-    w[0] = -1;
-    w_old[0] = -1;
-    for (i=0;i<n;i++) {
+    w[0] = -1.0;
+    w_old[0] = -1.0;
+    for (i=0; i<n; i++) {
       if (y[i] > 0) {
         r[i] = 2.0;
         d1[i] = 1.0;
@@ -244,6 +244,8 @@ static void sparse_svm(double *w, int *iter, double *lambda, int *saturated, dou
   } else {
     lstart = 0;
   }
+  
+  Rprintf("w[0] = %f\n", w[0]);
 
   // Solution path
   for (l=lstart; l<nlam; l++) {
