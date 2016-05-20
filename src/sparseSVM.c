@@ -245,8 +245,6 @@ static void sparse_svm(double *w, int *iter, double *lambda, int *saturated, dou
     lstart = 0;
   }
   
-  Rprintf("w[0] = %f\n", w[0]);
-
   // Solution path
   for (l=lstart; l<nlam; l++) {
     lp = l*p;
@@ -378,7 +376,9 @@ static void sparse_svm(double *w, int *iter, double *lambda, int *saturated, dou
   }
   if (scrflag != 0 && message) Rprintf("# violations detected and fixed: %d\n", nv);
   // Postprocessing
+  Rprintf("w[0] = %f\n", w[0]);
   if (ppflag) postprocess(w, shift, scale, nlam, p);
+  Rprintf("after postprocessing: w[0] = %f\n", w[0]);
 
   Free(x2);
   Free(sx_pos);
