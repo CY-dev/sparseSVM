@@ -54,6 +54,7 @@ static void standardize(double *x, double *y, double *x2, double *yx,
     sx_pos[j] = csum_p;
     sx_neg[j] = csum_n;
     syx[j] = csum;
+    Rprintf("shift[j] = %f, scale[%d] = %f\n", j, shift[j], j, scale[j]);
   }
 } 
 
@@ -126,8 +127,8 @@ static void sparse_svm(double *w, int *iter, double *lambda, int *saturated, dou
   double *yx = Calloc(n*p, double); // elementwise products: y[i] * x[i][j]
   double *syx = Calloc(p, double); // column sum of yx
   csum = 0.0; num_pos = 0;
+  // intercept column
   for (i=0; i<n; i++) {
-    // intercept column
     x2[i] = 1.0;
     yx[i] = y[i];
     csum += yx[i];
