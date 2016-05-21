@@ -190,7 +190,7 @@ static void sparse_svm(double *w, int *iter, double *lambda, int *saturated, dou
   if (scrflag == 0) {
     for (j=1; j<p; j++) if (nonconst[j]) include[j] = 1;
   } else {
-    for (j=1; j<p; j++) if (!pf[j] & nonconst[j]) include[j] = 1;
+    for (j=1; j<p; j++) if (!pf[j] && nonconst[j]) include[j] = 1;
   }
   
   // Initialization
@@ -226,37 +226,36 @@ static void sparse_svm(double *w, int *iter, double *lambda, int *saturated, dou
     }
   }
   
-  lmax = 0.0;
-  if (2*num_pos > n) {
-    for (j=1; j<p; j++) {
-      if (nonconst[j]) {
-        z[j] = (2*sx_neg[j]-sx_pos[j])/(2*n);
-        if (pf[j]) {
-          tmp = fabs(z[j])/pf[j];
-          if (tmp > lmax) lmax = tmp;
-        }
-      }
-    }
-  } else {
-    for (j=1; j<p; j++) {
-      if (nonconst[j]) {
-        z[j] = (2*sx_pos[j]-sx_neg[j])/(2*n);
-        if (pf[j]) {
-          tmp = fabs(z[j])/pf[j];
-          if (tmp > lmax) lmax = tmp;
-        }
-      }
-    }
-  }
-  lmax /= alpha;
-  
   // lambda
   if (user==0) {
-    lstart = 1;
+    lmax = 0.0;
+    if (2*num_pos > n) {
+      for (j=1; j<p; j++) {
+        if (nonconst[j]) {
+          z[j] = (2*sx_neg[j]-sx_pos[j])/(2*n);
+          if (pf[j]) {
+            tmp = fabs(z[j])/pf[j];
+            if (tmp > lmax) lmax = tmp;
+          }
+        }
+      }
+    } else {
+      for (j=1; j<p; j++) {
+        if (nonconst[j]) {
+          z[j] = (2*sx_pos[j]-sx_neg[j])/(2*n);
+          if (pf[j]) {
+            tmp = fabs(z[j])/pf[j];
+            if (tmp > lmax) lmax = tmp;
+          }
+        }
+      }
+    }
+    lmax /= alpha;
     lambda[0] = lmax;
     if (lambda_min == 0.0) lambda_min = 0.001;
     lstep = log(lambda_min)/(nlam - 1);
     for (l=1; l<nlam; l++) lambda[l] = lambda[l-1]*exp(lstep);
+    lstart = 1;
   } else {
     lstart = 0;
   }
@@ -270,12 +269,12 @@ static void sparse_svm(double *w, int *iter, double *lambda, int *saturated, dou
     // Variable screening
     if (scrflag != 0) {
       if (scrfactor > 3.0) scrfactor = 3.0;
-      if (l!=0) {
+      if (l != 0) {
         cutoff = alpha*((1.0+scrfactor)*lambda[l] - scrfactor*lambda[l-1]);
         ldiff = lambda[l-1] - lambda[l];
       } else {
-        cutoff = alpha*((1.0+scrfactor)*lambda[0] - scrfactor*lmax);
-        ldiff = lmax - lambda[0];
+        cutoff = alpha*lambda[0];
+        ldiff = 1.0;
       }
       for (j=1; j<p; j++) {
         if (!include[j] && nonconst[j] && fabs(z[j]) > cutoff * pf[j]) include[j] = 1;
@@ -368,7 +367,7 @@ static void sparse_svm(double *w, int *iter, double *lambda, int *saturated, dou
               // pf[j] > 0
               // w_old = w = d = 0, no need for judgement
               if (message) Rprintf("+V%d", j);
-            } else if (scrflag == 1 && ldiff != 0.0) {
+            } else if (scrflag == 1) {
               v3 = fabs(v1-z[j]);
               if (v3 > scrfactor) scrfactor = v3;
             }
