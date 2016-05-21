@@ -342,7 +342,7 @@ static void sparse_svm(double *w, int *iter, double *lambda, int *saturated, dou
                     d2[i] = gi;
                   }
                 }
-                update = (v2/(2.0*n)+l2*pf[j])*change*change;
+                update = (v2+l2*pf[j])*change*change;
                 if (update>max_update) max_update = update;
                 w_old[j] = w[lp+j];
               }
