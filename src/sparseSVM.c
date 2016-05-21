@@ -268,7 +268,7 @@ static void sparse_svm(double *w, int *iter, double *lambda, int *saturated, dou
     l2 = lambda[l]*(1.0-alpha);
     // Variable screening
     if (scrflag != 0) {
-      if (strfactor > 3.0) strfactor = 3.0;
+      if (strfactor > 1.0) strfactor = 1.0;
       if (l!=0) {
         cutoff = alpha*((1.0+strfactor)*lambda[l] - strfactor*lambda[l-1]);
         ldiff = lambda[l-1] - lambda[l];
