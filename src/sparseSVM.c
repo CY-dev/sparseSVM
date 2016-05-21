@@ -54,7 +54,7 @@ static void standardize(double *x, double *y, double *x2, double *yx,
     sx_pos[j] = csum_p;
     sx_neg[j] = csum_n;
     syx[j] = csum;
-    Rprintf("shift[j] = %f, scale[%d] = %f\n", j, shift[j], j, scale[j]);
+    Rprintf("shift[%d] = %f, scale[%d] = %f\n", j, shift[j], j, scale[j]);
   }
 } 
 
