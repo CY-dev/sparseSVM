@@ -263,12 +263,13 @@ static void sparse_svm(double *w, int *iter, double *lambda, int *saturated, dou
   
   // Solution path
   for (l=lstart; l<nlam; l++) {
+    if (message) Rprintf("Lambda %d\n", l+1);
     lp = l*p;
     l1 = lambda[l]*alpha;
     l2 = lambda[l]*(1.0-alpha);
     // Variable screening
     if (scrflag != 0) {
-      if (strfactor > 1.0) strfactor = 1.0;
+      if (strfactor > 3.0) strfactor = 3.0;
       if (l!=0) {
         cutoff = alpha*((1.0+strfactor)*lambda[l] - strfactor*lambda[l-1]);
         ldiff = lambda[l-1] - lambda[l];
@@ -358,7 +359,7 @@ static void sparse_svm(double *w, int *iter, double *lambda, int *saturated, dou
       if (scrflag != 0) {
         for (j=0; j<p; j++) {
           if (!include[j] && nonconst[j]) {
-            v1 = (crossprod(yx, d1, n, j)+syx[j])/(2*n);
+            v1 = (crossprod(yx, d1, n, j)+syx[j])/(2.0*n);
             // Check for KKT conditions
             if (fabs(v1)>l1*pf[j]) {
               include[j]=1;
@@ -366,29 +367,27 @@ static void sparse_svm(double *w, int *iter, double *lambda, int *saturated, dou
               violations++;
               // pf[j] > 0
               // w_old = w = d = 0, no need for judgement
-              if ((violations == 1) & message) Rprintf("Lambda %d\n", l+1);
               if (message) Rprintf("+V%d", j);
             } else if (scrflag == 1 && ldiff != 0.0) {
-              v3 = fabs((v1-z[j])/(pf[j]*ldiff*alpha));
+              v3 = fabs(v1-z[j]);
               if (v3 > strfactor) strfactor = v3;
             }
             z[j] = v1;
           }
           if (w_old[j] != 0.0) nnzero++;
         }
-        if (violations>0 && message) Rprintf("\n");
+        scrfactor /= alpha*ldiff;
+        if (message) {
+          if (violations) Rprintf("\n");
+          Rprintf("Variable screening factor = %f\n", scrfactor);
+        }
       } else {
         for (j=0; j<p; j++) if (w_old[j] != 0.0) nnzero++;
       }
+      if (message) Rprintf("# iterations = %d\n", iter[l]);
       if (violations==0) break;
       nv += violations;
     }
-    //Rprintf("iter[%d] = %d, w[0] = %f\n", l+1, iter[l], w[l*p]);
-    //if (iter[l] == max_iter) {
-    //  for (int ll = l; ll<nlam; ll++) iter[ll] = NA_INTEGER;
-    //  saturated[0] = 1;
-    //  break;
-    //}
   }
   if (scrflag != 0 && message) Rprintf("# violations detected and fixed: %d\n", nv);
   // Postprocessing
