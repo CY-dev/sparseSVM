@@ -127,7 +127,7 @@ static void sparse_svm(double *w, int *iter, double *lambda, int *saturated, dou
   int nlam = nlam_[0]; int n = n_[0]; int p = p_[0]; int ppflag = ppflag_[0]; int scrflag = scrflag_[0];
   int dfmax = dfmax_[0]; int max_iter = max_iter_[0]; int user = user_[0]; int message = message_[0];
   int i, j, k, l, lstart, lp, jn, num_pos, mismatch, nnzero = 0, violations = 0, nv = 0;
-  double gi = 1.0/gamma, cmax, cmin, csum_pos, csum_neg, csum, pct, lstep, ldiff, lmax, l1, l2, v1, v2, v3, tmp, change, max_update, update, strfactor = 1.0;  
+  double gi = 1.0/gamma, cmax, cmin, csum_pos, csum_neg, csum, pct, lstep, ldiff, lmax, l1, l2, v1, v2, v3, tmp, change, max_update, update, scrfactor = 1.0;  
   double *x2 = Calloc(n*p, double); // x^2
   double *sx_pos = Calloc(p, double); // column sum of x where y = 1
   double *sx_neg = Calloc(p, double); // column sum of x where y = -1
@@ -185,7 +185,7 @@ static void sparse_svm(double *w, int *iter, double *lambda, int *saturated, dou
   }
   
   //scrflag = 0: no screening; scrflag = 1: Adaptive Strong Rule(ASR); scrflag = 2: Strong Rule(SR)
-  // ASR fits an appropriate strfactor adaptively; SR always uses strfactor = 1
+  // ASR fits an appropriate scrfactor adaptively; SR always uses scrfactor = 1
   include[0] = 1; // always include an intercept
   if (scrflag == 0) {
     for (j=1; j<p; j++) if (nonconst[j]) include[j] = 1;
@@ -269,18 +269,18 @@ static void sparse_svm(double *w, int *iter, double *lambda, int *saturated, dou
     l2 = lambda[l]*(1.0-alpha);
     // Variable screening
     if (scrflag != 0) {
-      if (strfactor > 3.0) strfactor = 3.0;
+      if (scrfactor > 3.0) scrfactor = 3.0;
       if (l!=0) {
-        cutoff = alpha*((1.0+strfactor)*lambda[l] - strfactor*lambda[l-1]);
+        cutoff = alpha*((1.0+scrfactor)*lambda[l] - scrfactor*lambda[l-1]);
         ldiff = lambda[l-1] - lambda[l];
       } else {
-        cutoff = alpha*((1.0+strfactor)*lambda[0] - strfactor*lmax);
+        cutoff = alpha*((1.0+scrfactor)*lambda[0] - scrfactor*lmax);
         ldiff = lmax - lambda[0];
       }
       for (j=1; j<p; j++) {
         if (!include[j] && nonconst[j] && fabs(z[j]) > cutoff * pf[j]) include[j] = 1;
       }
-      strfactor = 0.0; //reset
+      if (scrflag == 1) scrfactor = 0.0; //reset for ASR
     }
     while(iter[l] < max_iter) {
       // Check dfmax
@@ -370,7 +370,7 @@ static void sparse_svm(double *w, int *iter, double *lambda, int *saturated, dou
               if (message) Rprintf("+V%d", j);
             } else if (scrflag == 1 && ldiff != 0.0) {
               v3 = fabs(v1-z[j]);
-              if (v3 > strfactor) strfactor = v3;
+              if (v3 > scrfactor) scrfactor = v3;
             }
             z[j] = v1;
           }
