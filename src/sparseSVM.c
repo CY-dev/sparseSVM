@@ -223,7 +223,7 @@ static void sparse_svm(double *w, int *iter, double *lambda, int *saturated, dou
         d1[i] = 0.0;
         d2[i] = gi;
       }
-    }    
+    }
   }
   
   lmax = 0.0;
@@ -304,7 +304,7 @@ static void sparse_svm(double *w, int *iter, double *lambda, int *saturated, dou
                 v2 += x2[jn+i]*d2[i];
                 pct += d2[i];
               }
-      	      pct = pct*gamma/n; // percentage of residuals with absolute values below gamma
+      	      pct *= gamma/n; // percentage of residuals with absolute values below gamma
               if (pct < 0.05 || pct < 1.0/n) {
                 // approximate v2 with a continuation technique
                 for (i=0; i<n; i++) {
@@ -312,15 +312,16 @@ static void sparse_svm(double *w, int *iter, double *lambda, int *saturated, dou
                   if (tmp > gamma) v2 += x2[jn+i]/tmp;
                 }
               }
+              v1 = (v1+syx[j])/(2.0*n); v2 /= 2.0*n;
               // Update w_j
               if (pf[j]==0.0) {
                 // unpenalized
-                w[lp+j] = w_old[j] + (v1+syx[0])/v2; 
-              } else if (fabs(w_old[j]+s[j]) > 1.0) { // active
+                w[lp+j] = w_old[j] + v1/v2;
+              } else if (fabs(w_old[j]+s[j]) > 1.0) {
                 s[j] = sign(w_old[j]+s[j]);
-                w[lp+j] = w_old[j] + ((v1+syx[j])/(2.0*n)-l1*pf[j]*s[j]-l2*pf[j]*w_old[j])/(v2/(2.0*n)+l2*pf[j]); 
+                w[lp+j] = w_old[j] + (v1-l1*pf[j]*s[j]-l2*pf[j]*w_old[j])/(v2+l2*pf[j]); 
               } else {
-                s[j] = (v1+syx[j]+v2*w_old[j])/(2.0*n*l1*pf[j]);
+                s[j] = (v1+v2*w_old[j])/(l1*pf[j]);
                 w[lp+j] = 0.0;
               }
               // mismatch between beta and s
@@ -341,12 +342,11 @@ static void sparse_svm(double *w, int *iter, double *lambda, int *saturated, dou
                     d2[i] = gi;
                   }
                 }
-                //update = v1*fabs(change) + 0.5*v2*change*change;
                 update = (v2/(2.0*n)+l2*pf[j])*change*change;
                 if (update>max_update) max_update = update;
                 w_old[j] = w[lp+j];
               }
-              if (!mismatch && update < thresh) break;              
+              if (!mismatch && update < thresh) break;
             }
           }
         }
@@ -392,10 +392,8 @@ static void sparse_svm(double *w, int *iter, double *lambda, int *saturated, dou
   }
   if (scrflag != 0 && message) Rprintf("# violations detected and fixed: %d\n", nv);
   // Postprocessing
-  Rprintf("w[0] = %f\n", w[0]);
   if (ppflag) postprocess(w, shift, scale, nonconst, nlam, p);
-  Rprintf("after postprocessing: w[0] = %f\n", w[0]);
-
+  
   Free(x2);
   Free(sx_pos);
   Free(sx_neg);
