@@ -268,7 +268,7 @@ static void sparse_svm(double *w, int *iter, double *lambda, int *saturated, dou
     l2 = lambda[l]*(1.0-alpha);
     // Variable screening
     if (scrflag != 0) {
-      if (strfactor > 10.0) strfactor = 10.0;
+      if (strfactor > 3.0) strfactor = 3.0;
       if (l!=0) {
         cutoff = alpha*((1.0+strfactor)*lambda[l] - strfactor*lambda[l-1]);
         ldiff = lambda[l-1] - lambda[l];
@@ -279,7 +279,7 @@ static void sparse_svm(double *w, int *iter, double *lambda, int *saturated, dou
       for (j=1; j<p; j++) {
         if (!include[j] && nonconst[j] && fabs(z[j]) > cutoff * pf[j]) include[j] = 1;
       }
-      strfactor = 1.0; //reset
+      strfactor = 0.0; //reset
     }
     while(iter[l] < max_iter) {
       // Check dfmax
