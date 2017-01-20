@@ -8,4 +8,7 @@ Maintainer: Congrui Yi <congrui-yi@uiowa.edu>
 Description: Fast algorithm for fitting solution paths of sparse linear SVM with lasso or elastic-net regularization generate sparse solutions.
 License: GPL-3
 NeedsCompilation: yes
+Depends: bigmemory
+Remotes: privefl/bigmemory
 Imports: parallel
+LinkingTo: Rcpp, bigmemory, BH
