@@ -69,3 +69,4 @@ COPY_sparseSVM <- function (X, y, alpha = 1, gamma = 0.1, nlambda=100, lambda.mi
                  levels = levels),
             class = "sparseSVM")
 }
+ 
