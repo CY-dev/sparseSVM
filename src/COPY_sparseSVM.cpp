@@ -4,22 +4,22 @@
 // #include <string.h>
 
 
-static double sign(double x) {
-  if (x>0) return 1.0;
-  else if (x<0) return -1.0;
-  else return 0.0;
+inline double sign(double x) {
+  if (x > 0) return 1.0;
+  if (x < 0) return -1.0;
+  return 0.0;
 }
 
 // standardization of features
 template <typename T>
-static void standardize(SubMatrixAccessor<T> macc, 
-                        const NumericVector &y,
-                        NumericVector &sx_pos,
-                        NumericVector &sx_neg, 
-                        NumericVector &syx, 
-                        NumericVector &shift, 
-                        NumericVector &scale, 
-                        LogicalVector &nonconst) {
+void standardize(SubMatrixAccessor<T> macc, 
+                 const NumericVector &y,
+                 NumericVector &sx_pos,
+                 NumericVector &sx_neg, 
+                 NumericVector &syx, 
+                 NumericVector &shift, 
+                 NumericVector &scale, 
+                 LogicalVector &nonconst) {
   int n = macc.nrow();
   int p = macc.ncol();
   
@@ -78,10 +78,12 @@ NumericMatrix& postprocess(NumericMatrix &w,
 
 // Semismooth Newton Coordinate Descent (SNCD) for lasso/elastic-net regularized SVM
 template <typename T>
-List COPY_sparse_svm(SubMatrixAccessor<T> macc, NumericVector &lambda, const NumericVector &y, 
-                     const NumericVector &pf, double gamma, double alpha, 
+List COPY_sparse_svm(SubMatrixAccessor<T> macc, NumericVector &lambda, 
+                     const NumericVector &y, const NumericVector &pf, 
+                     double gamma, double alpha, 
                      double thresh, double lambda_min,
-                     int scrflag, int dfmax, int max_iter, bool user, bool message) {
+                     int scrflag, int dfmax, int max_iter, 
+                     bool user, bool message) {
   int n = macc.nrow();
   int p = macc.ncol();
   
@@ -93,7 +95,9 @@ List COPY_sparse_svm(SubMatrixAccessor<T> macc, NumericVector &lambda, const Num
   
   // Declarations
   int i, j, k, l, lstart, mismatch, nnzero = 0, violations = 0, nv = 0;
-  double gi = 1.0/gamma, cmax, cmin, csum_pos, csum_neg, pct, lstep, ldiff, lmax, l1, l2, v1, v2, v3, tmp, change, max_update, update, scrfactor = 1.0;  
+  double gi = 1.0/gamma, cmax, cmin, csum_pos, csum_neg, pct,
+    lstep, ldiff, lmax, l1, l2, v1, v2, v3, tmp, mj, sj,
+    change, max_update, update, scrfactor = 1.0;  
   NumericVector sx_pos(p); // column sum of x where y = 1
   NumericVector sx_neg(p); // column sum of x where y = -1
   NumericVector syx(p); // column sum of x*y
@@ -111,7 +115,7 @@ List COPY_sparse_svm(SubMatrixAccessor<T> macc, NumericVector &lambda, const Num
   LogicalVector nonconst(p);
   
   // Preprocessing -> always standardize
-  standardize(x, y, sx_pos, sx_neg, syx, shift, scale, nonconst);
+  standardize<T>(macc, y, sx_pos, sx_neg, syx, shift, scale, nonconst);
   
   // scrflag = 0: no screening
   // scrflag = 1: Adaptive Strong Rule(ASR)
@@ -225,12 +229,14 @@ List COPY_sparse_svm(SubMatrixAccessor<T> macc, NumericVector &lambda, const Num
         mismatch = 0; max_update = 0.0;
         for (j=0; j<p; j++) {
           if (include[j]) {
+            mj = shift[j];
+            sj = scale[j];
             for (k=0; k<5; k++) {
               update = 0.0; mismatch = 0;
               // Calculate v1, v2
               v1 = 0.0; v2 = 0.0; pct = 0.0;
               for (i=0; i<n; i++) {
-                tmp = macc(i, j);
+                tmp = (macc(i, j) - mj) / sj;
                 v1 += tmp * y[i] * d1[i];
                 v2 += tmp * tmp * d2[i];
                 pct += d2[i];
@@ -240,7 +246,7 @@ List COPY_sparse_svm(SubMatrixAccessor<T> macc, NumericVector &lambda, const Num
                 // approximate v2 with a continuation technique
                 for (i=0; i<n; i++) {
                   tmp = fabs(r[i]);
-                  if (tmp > gamma) v2 += pow(macc(i, j), 2) / tmp;
+                  if (tmp > gamma) v2 += pow((macc(i, j) - mj) / sj, 2) / tmp;
                 }
               }
               v1 = (v1+syx[j])/(2.0*n); v2 /= 2.0*n;
@@ -264,7 +270,7 @@ List COPY_sparse_svm(SubMatrixAccessor<T> macc, NumericVector &lambda, const Num
               change = w(j, l)-w_old[j];
               if (change>1e-6) {
                 for (i=0; i<n; i++) {
-                  r[i] -= macc(i, j) * y[i] * change;
+                  r[i] -= (macc(i, j) - mj) / sj * y[i] * change;
                   if (fabs(r[i])>gamma) {
                     d1[i] = sign(r[i]);
                     d2[i] = 0.0;
@@ -289,8 +295,10 @@ List COPY_sparse_svm(SubMatrixAccessor<T> macc, NumericVector &lambda, const Num
       if (scrflag != 0) {
         for (j=0; j<p; j++) {
           if (!include[j] && nonconst[j]) {
+            mj = shift[j];
+            sj = scale[j];
             // crossprod
-            v1 = 0; for (int i=0;i<n;i++) v1 += macc(i, j) * y[i] * d1[i];
+            v1 = 0; for (int i=0;i<n;i++) v1 += (macc(i, j) - mj) / sj * y[i] * d1[i];
             v1 = (v1 + syx[j]) / (2.0*n);
             // Check for KKT conditions
             if (fabs(v1)>l1*pf[j]) {
@@ -331,7 +339,8 @@ List COPY_sparse_svm(SubMatrixAccessor<T> macc, NumericVector &lambda, const Num
 // Dispatch function for COPY_cdfit_gaussian_hsr
 // [[Rcpp::export]]
 List COPY_cdfit_gaussian_hsr(XPtr<BigMatrix> xpMat, const NumericVector &y, 
-                             const NumericVector &covar, NumericVector &lambda, 
+                             const IntegerVector &row_idx,
+                             const NumericMatrix &covar, NumericVector &lambda, 
                              const NumericVector &pf, double gamma, double alpha, 
                              double thresh, double lambda_min, int nlam, 
                              int scrflag, int dfmax, int max_iter, bool user, bool message) {
@@ -362,4 +371,3 @@ List COPY_cdfit_gaussian_hsr(XPtr<BigMatrix> xpMat, const NumericVector &y,
 }
 
 /******************************************************************************/
- 
