@@ -11,6 +11,7 @@ static double sign(double x) {
 }
 
 // standardization of features
+template <typename T>
 static void standardize(SubMatrixAccessor<T> macc, 
                         const NumericVector &y,
                         NumericVector &sx_pos,
@@ -69,7 +70,7 @@ NumericMatrix& postprocess(NumericMatrix &w,
         prod += shift[j] * w(j, l);
       }
     }
-    w(l, 0) -= prod;
+    w(0, l) -= prod;
   }
   
   return w;
@@ -78,7 +79,7 @@ NumericMatrix& postprocess(NumericMatrix &w,
 // Semismooth Newton Coordinate Descent (SNCD) for lasso/elastic-net regularized SVM
 template <typename T>
 List COPY_sparse_svm(SubMatrixAccessor<T> macc, NumericVector &lambda, const NumericVector &y, 
-                     const NumericVectir &pf, double gamma, double alpha, 
+                     const NumericVector &pf, double gamma, double alpha, 
                      double thresh, double lambda_min,
                      int scrflag, int dfmax, int max_iter, bool user, bool message) {
   int n = macc.nrow();
@@ -126,7 +127,7 @@ List COPY_sparse_svm(SubMatrixAccessor<T> macc, NumericVector &lambda, const Num
   // Initialization
   if (2*sx_pos[0] > n) {
     // initial intercept = 1
-    w[0] = 1.0;
+    w(0, 0) = 1.0;
     w_old[0] = 1.0;
     for (i=0; i<n; i++) {
       if (y[i] > 0) {
@@ -141,7 +142,7 @@ List COPY_sparse_svm(SubMatrixAccessor<T> macc, NumericVector &lambda, const Num
     }
   } else {
     // initial intercept = -1
-    w[0] = -1.0;
+    w(0, 0) = -1.0;
     w_old[0] = -1.0;
     for (i=0; i<n; i++) {
       if (y[i] > 0) {
@@ -193,7 +194,6 @@ List COPY_sparse_svm(SubMatrixAccessor<T> macc, NumericVector &lambda, const Num
   // Solution path
   for (l=lstart; l<nlam; l++) {
     if (message) Rprintf("Lambda %d\n", l+1);
-    lp = l*p;
     l1 = lambda[l]*alpha;
     l2 = lambda[l]*(1.0-alpha);
     // Variable screening
@@ -247,21 +247,21 @@ List COPY_sparse_svm(SubMatrixAccessor<T> macc, NumericVector &lambda, const Num
               // Update w_j
               if (pf[j]==0.0) {
                 // unpenalized
-                w[lp+j] = w_old[j] + v1/v2;
+                w(j, l) = w_old[j] + v1/v2;
               } else if (fabs(w_old[j]+s[j]) > 1.0) {
                 s[j] = sign(w_old[j]+s[j]);
-                w[lp+j] = w_old[j] + (v1-l1*pf[j]*s[j]-l2*pf[j]*w_old[j])/(v2+l2*pf[j]); 
+                w(j, l) = w_old[j] + (v1-l1*pf[j]*s[j]-l2*pf[j]*w_old[j])/(v2+l2*pf[j]); 
               } else {
                 s[j] = (v1+v2*w_old[j])/(l1*pf[j]);
-                w[lp+j] = 0.0;
+                w(j, l) = 0.0;
               }
               // mismatch between beta and s
               if (pf[j] > 0) {
-                if (fabs(s[j]) > 1 || (w[lp+j] != 0 && s[j] != sign(w[lp+j]))) mismatch = 1;
+                if (fabs(s[j]) > 1 || (w(j, l) != 0 && s[j] != sign(w(j, l)))) mismatch = 1;
               }
               // Update r, d1, d2 and compute candidate of max_update
               //Rprintf("l=%d, v1=%lf, v2=%lf, pct=%lf, change = %lf, mismatch = %d\n",l+1,v1,v2,pct,change,mismatch);
-              change = w[lp+j]-w_old[j];
+              change = w(j, l)-w_old[j];
               if (change>1e-6) {
                 for (i=0; i<n; i++) {
                   r[i] -= macc(i, j) * y[i] * change;
@@ -275,7 +275,7 @@ List COPY_sparse_svm(SubMatrixAccessor<T> macc, NumericVector &lambda, const Num
                 }
                 update = (v2+l2*pf[j])*change*change;
                 if (update>max_update) max_update = update;
-                w_old[j] = w[lp+j];
+                w_old[j] = w(j, l);
               }
               if (!mismatch && update < thresh) break;
             }
@@ -332,7 +332,7 @@ List COPY_sparse_svm(SubMatrixAccessor<T> macc, NumericVector &lambda, const Num
 // [[Rcpp::export]]
 List COPY_cdfit_gaussian_hsr(XPtr<BigMatrix> xpMat, const NumericVector &y, 
                              const NumericVector &covar, NumericVector &lambda, 
-                             const NumericVectir &pf, double gamma, double alpha, 
+                             const NumericVector &pf, double gamma, double alpha, 
                              double thresh, double lambda_min, int nlam, 
                              int scrflag, int dfmax, int max_iter, bool user, bool message) {
   switch(xpMat->matrix_type()) {

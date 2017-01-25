@@ -26,7 +26,7 @@ COPY_sparseSVM <- function (X, y.train, ind.train, covar.train,
   yy <- double(n)
   yy[y.train == levels[1]] <- -1
   yy[y.train == levels[2]] <- 1
-  penalty.factor <- c(0, penalty.factor, rep(1, ncol(covar))) # no penalty for intercept term
+  penalty.factor <- c(0, penalty.factor, rep(1, ncol(covar.train))) # no penalty for intercept term
   
   if(missing(lambda)) {
     lambda <- double(nlambda)
@@ -39,8 +39,9 @@ COPY_sparseSVM <- function (X, y.train, ind.train, covar.train,
   # Flag for screening
   scrflag = switch(screen, ASR = 1, SR = 2, none = 0)
   # Fitting
-  COPY_sparse_svm(X@address, yy, covar.train, lambda, penalty.factor, gamma, alpha, 
-                  eps, lambda.min, scrflag, dfmax, max.iter, user, message)
+  fit <- COPY_sparse_svm(X@address, yy, ind.train-1, covar.train, 
+                         lambda, penalty.factor, gamma, alpha, 
+                         eps, lambda.min, scrflag, dfmax, max.iter, user, message)
   weights <- fit[[1]]
   iter <- fit[[2]]
   lambda <- fit[[3]]
