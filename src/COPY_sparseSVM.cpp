@@ -10,52 +10,43 @@ static double sign(double x) {
   else return 0.0;
 }
 
-static double crossprod(double *yx, double *v, int n, int j) {
-  int jn = j*n;
-  double sum=0.0;
-  for (int i=0;i<n;i++) sum += yx[jn+i]*v[i];
-  return(sum);
-}
-
 // standardization of features
-static void standardize(double *x, double *y, double *x2, double *yx, 
-                        double *sx_pos, double *sx_neg, double *syx, 
+static void standardize(SubMatrixAccessor<T> macc, const NumericVector &y,
+                        NumericVector &sx_pos, NumericVector &sx_neg, 
+                        NumericVector &syx, 
                         NumericVector &shift, NumericVector &scale, 
-                        LogicalVector &nonconst, int n, int p) {
-  int i, j, jn; 
-  double xm, xsd, xvar, csum_pos, csum_neg, csum;
-  for (j=1; j<p; j++) {
-    jn = j*n; xm = 0.0; xvar = 0.0; 
-    csum_pos = 0.0; csum_neg = 0.0; csum = 0.0;
-    for (i=0; i<n; i++) xm += x[jn+i];
-    xm /= n;
-    for (i=0; i<n; i++) {
-      x[jn+i] -= xm;
-      x2[jn+i] = pow(x[jn+i], 2);
-      xvar += x2[jn+i];
-    }
-    xvar /= n;
-    xsd = sqrt(xvar);
-    if (xsd > 1e-6) {
-      nonconst[j] = true;
-      for (i=0; i<n; i++) {
-        x[jn+i] = x[jn+i]/xsd;
-        x2[jn+i] = x2[jn+i]/xvar;
-        yx[jn+i] = y[i]*x[jn+i];
-        if (y[i] > 0) {
-          csum_pos += x[jn+i];
-        } else {
-          csum_neg += x[jn+i];
-        }
-        csum += yx[jn+i];
+                        LogicalVector &nonconst) {
+  int n = macc.nrow();
+  int p = macc.ncol();
+  
+  int i, j; 
+  double tmp, xSum, xxSum, csum_pos, csum_neg;
+  
+  for (j = 0; j < p; j++) {                            
+    xSum = xxSum = csum_pos = csum_neg = 0.0; 
+    
+    for (i = 0; i < n; i++) {
+      tmp = macc(i, j);
+      xxSum += tmp * tmp;
+      if (y[i] > 0) { // y[i] == 1
+        csum_pos += tmp;
+      } else {
+        csum_neg += tmp;
       }
-      shift[j] = xm;
-      scale[j] = xsd;
-      sx_pos[j] = csum_pos;
-      sx_neg[j] = csum_neg;
-      syx[j] = csum;      
     }
+    xSum = csum_pos + csum_neg;
+    
+    shift[j] = xSum / n;
+    scale[j] = sqrt((xxSum - xSum * xSum / n) / (n-1));
+    if (scale[j] > 1e-6) nonconst[j] = true;
+    sx_pos[j] = csum_pos;
+    sx_neg[j] = csum_neg;
+    syx[j] = csum_pos - csum_neg;      
   }
+  
+  // unscaled intercept?
+  shift[0] = 0;
+  scale[0] = 1;
 }
 
 
@@ -81,7 +72,7 @@ NumericMatrix& postprocess(NumericMatrix &w, const NumericVector &shift,
 
 // Semismooth Newton Coordinate Descent (SNCD) for lasso/elastic-net regularized SVM
 template <typename T>
-List COPY_sparse_svm(SubMatrixAccessor<T> x, NumericVector &lambda, const NumericVector &y, 
+List COPY_sparse_svm(SubMatrixAccessor<T> macc, NumericVector &lambda, const NumericVector &y, 
                      const NumericVectir &pf, double gamma, double alpha, 
                      double thresh, double lambda_min, int n, int p, 
                      int scrflag, int dfmax, int max_iter, bool user, bool message) {
@@ -92,24 +83,11 @@ List COPY_sparse_svm(SubMatrixAccessor<T> x, NumericVector &lambda, const Numeri
   bool saturated = false;
   
   // Declarations
-  int i, j, k, l, lstart, lp, jn, num_pos, mismatch, nnzero = 0, violations = 0, nv = 0;
-  double gi = 1.0/gamma, cmax, cmin, csum_pos, csum_neg, csum, pct, lstep, ldiff, lmax, l1, l2, v1, v2, v3, tmp, change, max_update, update, scrfactor = 1.0;  
-  double *x2 = Calloc(n*p, double); // x^2
-  double *sx_pos = Calloc(p, double); // column sum of x where y = 1
-  double *sx_neg = Calloc(p, double); // column sum of x where y = -1
-  double *yx = Calloc(n*p, double); // elementwise products: y[i] * x[i][j]
-  double *syx = Calloc(p, double); // column sum of yx
-  csum = 0.0; num_pos = 0;
-  // intercept column
-  for (i=0; i<n; i++) {
-    x2[i] = 1.0;
-    yx[i] = y[i];
-    csum += yx[i];
-    if (y[i] > 0) num_pos++;
-  }
-  syx[0] = csum;
-  sx_pos[0] = num_pos;
-  sx_neg[0] = n-num_pos;
+  int i, j, k, l, lstart, mismatch, nnzero = 0, violations = 0, nv = 0;
+  double gi = 1.0/gamma, cmax, cmin, csum_pos, csum_neg, pct, lstep, ldiff, lmax, l1, l2, v1, v2, v3, tmp, change, max_update, update, scrfactor = 1.0;  
+  NumericVector sx_pos(p); // column sum of x where y = 1
+  NumericVector sx_neg(p); // column sum of x where y = -1
+  NumericVector syx(p); // column sum of x*y
   
   NumericVector shift(p);
   NumericVector scale(p);
@@ -124,7 +102,7 @@ List COPY_sparse_svm(SubMatrixAccessor<T> x, NumericVector &lambda, const Numeri
   LogicalVector nonconst(p);
   
   // Preprocessing -> always standardize
-  standardize(x, y, x2, yx, sx_pos, sx_neg, syx, shift, scale, nonconst, n, p);
+  standardize(x, y, sx_pos, sx_neg, syx, shift, scale, nonconst);
   
   // scrflag = 0: no screening
   // scrflag = 1: Adaptive Strong Rule(ASR)
@@ -138,7 +116,7 @@ List COPY_sparse_svm(SubMatrixAccessor<T> x, NumericVector &lambda, const Numeri
   }
   
   // Initialization
-  if (2*num_pos > n) {
+  if (2*sx_pos[0] > n) {
     // initial intercept = 1
     w[0] = 1.0;
     w_old[0] = 1.0;
@@ -171,9 +149,9 @@ List COPY_sparse_svm(SubMatrixAccessor<T> x, NumericVector &lambda, const Numeri
   }
   
   // lambda
-  if (user==0) {
+  if (!user) {
     lmax = 0.0;
-    if (2*num_pos > n) {
+    if (2*sx_pos[0] > n) {
       for (j=1; j<p; j++) {
         if (nonconst[j]) {
           z[j] = (2*sx_neg[j]-sx_pos[j])/(2*n);
@@ -242,10 +220,11 @@ List COPY_sparse_svm(SubMatrixAccessor<T> x, NumericVector &lambda, const Numeri
             for (k=0; k<5; k++) {
               update = 0.0; mismatch = 0;
               // Calculate v1, v2
-              jn = j*n; v1 = 0.0; v2 = 0.0; pct = 0.0;
+              v1 = 0.0; v2 = 0.0; pct = 0.0;
               for (i=0; i<n; i++) {
-                v1 += yx[jn+i]*d1[i];
-                v2 += x2[jn+i]*d2[i];
+                tmp = macc(i, j);
+                v1 += tmp * y[i] * d1[i];
+                v2 += tmp * tmp * d2[i];
                 pct += d2[i];
               }
               pct *= gamma/n; // percentage of residuals with absolute values below gamma
@@ -253,7 +232,7 @@ List COPY_sparse_svm(SubMatrixAccessor<T> x, NumericVector &lambda, const Numeri
                 // approximate v2 with a continuation technique
                 for (i=0; i<n; i++) {
                   tmp = fabs(r[i]);
-                  if (tmp > gamma) v2 += x2[jn+i]/tmp;
+                  if (tmp > gamma) v2 += pow(macc(i, j), 2) / tmp;
                 }
               }
               v1 = (v1+syx[j])/(2.0*n); v2 /= 2.0*n;
@@ -277,7 +256,7 @@ List COPY_sparse_svm(SubMatrixAccessor<T> x, NumericVector &lambda, const Numeri
               change = w[lp+j]-w_old[j];
               if (change>1e-6) {
                 for (i=0; i<n; i++) {
-                  r[i] -= yx[jn+i]*change;
+                  r[i] -= macc(i, j) * y[i] * change;
                   if (fabs(r[i])>gamma) {
                     d1[i] = sign(r[i]);
                     d2[i] = 0.0;
@@ -301,8 +280,10 @@ List COPY_sparse_svm(SubMatrixAccessor<T> x, NumericVector &lambda, const Numeri
       violations = 0; nnzero = 0;
       if (scrflag != 0) {
         for (j=0; j<p; j++) {
-          if (!include[j] && // partial derivative used for screening: X^t*d1/n[j]) {
-            v1 = (crossprod(yx, d1, n, j)+syx[j])/(2.0*n);
+          if (!include[j] && nonconst[j]) {
+            // crossprod
+            v1 = 0; for (int i=0;i<n;i++) v1 += macc(i, j) * y[i] * d1[i];
+            v1 = (v1 + syx[j]) / (2.0*n);
             // Check for KKT conditions
             if (fabs(v1)>l1*pf[j]) {
               include[j]=true;
@@ -334,13 +315,7 @@ List COPY_sparse_svm(SubMatrixAccessor<T> x, NumericVector &lambda, const Numeri
   }
   if (scrflag != 0 && message) Rprintf("# violations detected and fixed: %d\n", nv);
   // Postprocessing
-  if (ppflag) w = postprocess(w, shift, scale, nonconst, nlam, p);
-  
-  Free(x2);
-  Free(sx_pos);
-  Free(sx_neg);
-  Free(yx);
-  Free(syx);
+  w = postprocess(w, shift, scale, nonconst, nlam, p);
   
   return List::create(w, iter, lambda, saturated);
 }
