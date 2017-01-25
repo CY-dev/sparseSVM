@@ -95,9 +95,8 @@ List COPY_sparse_svm(SubMatrixAccessor<T> macc, NumericVector &lambda,
   
   // Declarations
   int i, j, k, l, lstart, mismatch, nnzero = 0, violations = 0, nv = 0;
-  double gi = 1.0/gamma, cmax, cmin, csum_pos, csum_neg, pct,
-    lstep, ldiff, lmax, l1, l2, v1, v2, v3, tmp, mj, sj,
-    change, max_update, update, scrfactor = 1.0;  
+  double gi = 1.0/gamma, pct, lstep, ldiff, lmax, l1, l2, v1, v2, v3, 
+    tmp, mj, sj, change, max_update, update, scrfactor = 1.0;  
   NumericVector sx_pos(p); // column sum of x where y = 1
   NumericVector sx_neg(p); // column sum of x where y = -1
   NumericVector syx(p); // column sum of x*y
