@@ -336,35 +336,35 @@ List COPY_sparse_svm(SubMatrixAccessor<T> macc, NumericVector &lambda,
   return List::create(w, iter, lambda, saturated);
 }
 
-// Dispatch function for COPY_cdfit_gaussian_hsr
+// Dispatch function for COPY_sparse_svm
 // [[Rcpp::export]]
-List COPY_cdfit_gaussian_hsr(XPtr<BigMatrix> xpMat, const NumericVector &y, 
-                             const IntegerVector &row_idx,
-                             const NumericMatrix &covar, NumericVector &lambda, 
-                             const NumericVector &pf, double gamma, double alpha, 
-                             double thresh, double lambda_min, int nlam, 
-                             int scrflag, int dfmax, int max_iter, bool user, bool message) {
+List COPY_sparse_svm(XPtr<BigMatrix> xpMat, const NumericVector &y, 
+                     const IntegerVector &row_idx,
+                     const NumericMatrix &covar, NumericVector &lambda, 
+                     const NumericVector &pf, double gamma, double alpha, 
+                     double thresh, double lambda_min, int nlam, 
+                     int scrflag, int dfmax, int max_iter, bool user, bool message) {
   switch(xpMat->matrix_type()) {
   case 1:
-    return COPY_cdfit_gaussian_hsr(SubMatrixAccessor<char>(*xpMat, row_idx, covar),   
-                                   lambda, y, pf, gamma, alpha, thresh, lambda_min, 
-                                   scrflag, dfmax, max_iter, user, message);
+    return COPY_sparse_svm(SubMatrixAccessor<char>(*xpMat, row_idx, covar),   
+                           lambda, y, pf, gamma, alpha, thresh, lambda_min, 
+                           scrflag, dfmax, max_iter, user, message);
   case 2:
-    return COPY_cdfit_gaussian_hsr(SubMatrixAccessor<short>(*xpMat, row_idx, covar),   
-                                   lambda, y, pf, gamma, alpha, thresh, lambda_min, 
-                                   scrflag, dfmax, max_iter, user, message);
+    return COPY_sparse_svm(SubMatrixAccessor<short>(*xpMat, row_idx, covar),   
+                           lambda, y, pf, gamma, alpha, thresh, lambda_min, 
+                           scrflag, dfmax, max_iter, user, message);
   case 4:
-    return COPY_cdfit_gaussian_hsr(SubMatrixAccessor<int>(*xpMat, row_idx, covar),   
-                                   lambda, y, pf, gamma, alpha, thresh, lambda_min, 
-                                   scrflag, dfmax, max_iter, user, message);
+    return COPY_sparse_svm(SubMatrixAccessor<int>(*xpMat, row_idx, covar),   
+                           lambda, y, pf, gamma, alpha, thresh, lambda_min, 
+                           scrflag, dfmax, max_iter, user, message);
   case 6:
-    return COPY_cdfit_gaussian_hsr(SubMatrixAccessor<float>(*xpMat, row_idx, covar),   
-                                   lambda, y, pf, gamma, alpha, thresh, lambda_min, 
-                                   scrflag, dfmax, max_iter, user, message);
+    return COPY_sparse_svm(SubMatrixAccessor<float>(*xpMat, row_idx, covar),   
+                           lambda, y, pf, gamma, alpha, thresh, lambda_min, 
+                           scrflag, dfmax, max_iter, user, message);
   case 8:
-    return COPY_cdfit_gaussian_hsr(SubMatrixAccessor<double>(*xpMat, row_idx, covar),   
-                                   lambda, y, pf, gamma, alpha, thresh, lambda_min, 
-                                   scrflag, dfmax, max_iter, user, message);
+    return COPY_sparse_svm(SubMatrixAccessor<double>(*xpMat, row_idx, covar),   
+                           lambda, y, pf, gamma, alpha, thresh, lambda_min, 
+                           scrflag, dfmax, max_iter, user, message);
   default:
     throw Rcpp::exception("unknown type detected for big.matrix object!");
   }
