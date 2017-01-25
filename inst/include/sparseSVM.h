@@ -36,11 +36,17 @@ public:
   }
   
   inline double operator() (int i, int j) {
-    if (j < _ncolBM) {
-      return *(_pMat + _totalRows * j + _row_ind[i]);
+    if (j == 0) {
+      return 1;
     } else {
-      return _covar(i, j - _ncolBM);
+      j--;
+      if (j < _ncolBM) {
+        return *(_pMat + _totalRows * j + _row_ind[i]);
+      } else {
+        return _covar(i, j - _ncolBM);
+      }
     }
+     
   }
   
   int nrow() const {
@@ -48,7 +54,7 @@ public:
   }
   
   int ncol() const {
-    return _ncolBM + _ncoladd;
+    return 1 + _ncolBM + _ncoladd;
   }
   
 protected:

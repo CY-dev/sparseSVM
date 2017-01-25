@@ -1,7 +1,10 @@
 # always standardize
-COPY_sparseSVM <- function (X, y, alpha = 1, gamma = 0.1, nlambda=100, lambda.min = ifelse(nrow(X)>ncol(X), 0.01, 0.05), lambda, 
-                       screen = c("ASR", "SR", "none"), max.iter = 1000, 
-                       eps = 1e-5, dfmax = ncol(X)+1, penalty.factor=rep(1, ncol(X)), message = FALSE) {
+COPY_sparseSVM <- function (X, y.train, ind.train, covar.train,
+                            alpha = 1, gamma = 0.1, nlambda=100, 
+                            lambda.min = `if`(nrow(X) > ncol(X), 0.01, 0.05), 
+                            lambda, screen = c("ASR", "SR", "none"), max.iter = 1000,
+                            eps = 1e-5, dfmax = ncol(X)+1, penalty.factor=rep(1, ncol(X)), 
+                            message = FALSE) {
   
   # Error checking
   screen <- match.arg(screen)
@@ -10,23 +13,20 @@ COPY_sparseSVM <- function (X, y, alpha = 1, gamma = 0.1, nlambda=100, lambda.mi
   if (missing(lambda) && nlambda < 2) stop("nlambda should be at least 2")
   if (length(penalty.factor)!=ncol(X)) stop("the length of penalty.factor should equal the number of columns of X")
   
-  if (is.factor(y)) {
-    levels <- levels(y)
+  if (is.factor(y.train)) {
+    levels <- levels(y.train)
   } else {
-    levels <- unique(y)    
+    levels <- sort(unique(y.train))    
   }
   if (length(levels) != 2) stop("currently the function only supports binary classification")
   
   call <- match.call()
   # convert response to +1/-1 coding
-  n <- length(y)
+  n <- length(y.train)
   yy <- double(n)
-  yy[y == levels[1]] <- 1
-  yy[y == levels[2]] <- -1
-  # Include a column for intercept
-  XX <- cbind(rep(1,n), X)
-  penalty.factor <- c(0, penalty.factor) # no penalty for intercept term
-  p <- ncol(XX)
+  yy[y.train == levels[1]] <- -1
+  yy[y.train == levels[2]] <- 1
+  penalty.factor <- c(0, penalty.factor, rep(1, ncol(covar))) # no penalty for intercept term
   
   if(missing(lambda)) {
     lambda <- double(nlambda)
@@ -39,8 +39,8 @@ COPY_sparseSVM <- function (X, y, alpha = 1, gamma = 0.1, nlambda=100, lambda.mi
   # Flag for screening
   scrflag = switch(screen, ASR = 1, SR = 2, none = 0)
   # Fitting
-  COPY_sparse_svm(as.double(XX), yy, lambda, penalty.factor, gamma, alpha, 
-                  eps, lambda.min, n, p, scrflag, dfmax, max.iter, user, message)
+  COPY_sparse_svm(X@address, yy, covar.train, lambda, penalty.factor, gamma, alpha, 
+                  eps, lambda.min, scrflag, dfmax, max.iter, user, message)
   weights <- fit[[1]]
   iter <- fit[[2]]
   lambda <- fit[[3]]
@@ -51,11 +51,11 @@ COPY_sparseSVM <- function (X, y, alpha = 1, gamma = 0.1, nlambda=100, lambda.mi
   iter <- iter[ind]
   lambda <- lambda[ind]
   
-  # Names
-  vnames <- colnames(X)
-  if (is.null(vnames)) vnames=paste0("V",seq(p-1))
-  vnames <- c("(Intercept)", vnames)
-  dimnames(weights) <- list(vnames, round(lambda, 4))
+  # # Names
+  # vnames <- colnames(X)
+  # if (is.null(vnames)) vnames=paste0("V",seq(p-1))
+  # vnames <- c("(Intercept)", vnames)
+  # dimnames(weights) <- list(vnames, round(lambda, 4))
   
   # Output
   structure(list(call = call,
@@ -69,4 +69,3 @@ COPY_sparseSVM <- function (X, y, alpha = 1, gamma = 0.1, nlambda=100, lambda.mi
                  levels = levels),
             class = "sparseSVM")
 }
- 

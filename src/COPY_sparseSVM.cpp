@@ -11,10 +11,13 @@ static double sign(double x) {
 }
 
 // standardization of features
-static void standardize(SubMatrixAccessor<T> macc, const NumericVector &y,
-                        NumericVector &sx_pos, NumericVector &sx_neg, 
+static void standardize(SubMatrixAccessor<T> macc, 
+                        const NumericVector &y,
+                        NumericVector &sx_pos,
+                        NumericVector &sx_neg, 
                         NumericVector &syx, 
-                        NumericVector &shift, NumericVector &scale, 
+                        NumericVector &shift, 
+                        NumericVector &scale, 
                         LogicalVector &nonconst) {
   int n = macc.nrow();
   int p = macc.ncol();
@@ -30,7 +33,7 @@ static void standardize(SubMatrixAccessor<T> macc, const NumericVector &y,
       xxSum += tmp * tmp;
       if (y[i] > 0) { // y[i] == 1
         csum_pos += tmp;
-      } else {
+      } else {        // y[i] == -1
         csum_neg += tmp;
       }
     }
@@ -51,9 +54,11 @@ static void standardize(SubMatrixAccessor<T> macc, const NumericVector &y,
 
 
 // postprocessing of feature weights
-NumericMatrix& postprocess(NumericMatrix &w, const NumericVector &shift, 
-                        const NumericVector &scale, 
-                        const LogicalVector &nonconst, int nlam, int p) {
+NumericMatrix& postprocess(NumericMatrix &w, 
+                           const NumericVector &shift, 
+                           const NumericVector &scale, 
+                           const LogicalVector &nonconst,
+                           int nlam, int p) {
   int l, j; 
   double prod;
   for (l = 0; l<nlam; l++) {
@@ -74,8 +79,11 @@ NumericMatrix& postprocess(NumericMatrix &w, const NumericVector &shift,
 template <typename T>
 List COPY_sparse_svm(SubMatrixAccessor<T> macc, NumericVector &lambda, const NumericVector &y, 
                      const NumericVectir &pf, double gamma, double alpha, 
-                     double thresh, double lambda_min, int n, int p, 
+                     double thresh, double lambda_min,
                      int scrflag, int dfmax, int max_iter, bool user, bool message) {
+  int n = macc.nrow();
+  int p = macc.ncol();
+  
   // returns
   int nlam = lambda.size();
   NumericMatrix w(p, nlam);
@@ -322,32 +330,32 @@ List COPY_sparse_svm(SubMatrixAccessor<T> macc, NumericVector &lambda, const Num
 
 // Dispatch function for COPY_cdfit_gaussian_hsr
 // [[Rcpp::export]]
-List COPY_cdfit_gaussian_hsr(XPtr<BigMatrix> xpMat,
-                             const NumericVector &y, NumericVector &lambda, 
+List COPY_cdfit_gaussian_hsr(XPtr<BigMatrix> xpMat, const NumericVector &y, 
+                             const NumericVector &covar, NumericVector &lambda, 
                              const NumericVectir &pf, double gamma, double alpha, 
-                             double thresh, double lambda_min, int nlam, int n, int p, 
+                             double thresh, double lambda_min, int nlam, 
                              int scrflag, int dfmax, int max_iter, bool user, bool message) {
   switch(xpMat->matrix_type()) {
   case 1:
     return COPY_cdfit_gaussian_hsr(SubMatrixAccessor<char>(*xpMat, row_idx, covar),   
                                    lambda, y, pf, gamma, alpha, thresh, lambda_min, 
-                                   n, p, scrflag, dfmax, max_iter, user, message);
+                                   scrflag, dfmax, max_iter, user, message);
   case 2:
     return COPY_cdfit_gaussian_hsr(SubMatrixAccessor<short>(*xpMat, row_idx, covar),   
                                    lambda, y, pf, gamma, alpha, thresh, lambda_min, 
-                                   n, p, scrflag, dfmax, max_iter, user, message);
+                                   scrflag, dfmax, max_iter, user, message);
   case 4:
     return COPY_cdfit_gaussian_hsr(SubMatrixAccessor<int>(*xpMat, row_idx, covar),   
                                    lambda, y, pf, gamma, alpha, thresh, lambda_min, 
-                                   n, p, scrflag, dfmax, max_iter, user, message);
+                                   scrflag, dfmax, max_iter, user, message);
   case 6:
     return COPY_cdfit_gaussian_hsr(SubMatrixAccessor<float>(*xpMat, row_idx, covar),   
                                    lambda, y, pf, gamma, alpha, thresh, lambda_min, 
-                                   n, p, scrflag, dfmax, max_iter, user, message);
+                                   scrflag, dfmax, max_iter, user, message);
   case 8:
     return COPY_cdfit_gaussian_hsr(SubMatrixAccessor<double>(*xpMat, row_idx, covar),   
                                    lambda, y, pf, gamma, alpha, thresh, lambda_min, 
-                                   n, p, scrflag, dfmax, max_iter, user, message);
+                                   scrflag, dfmax, max_iter, user, message);
   default:
     throw Rcpp::exception("unknown type detected for big.matrix object!");
   }
