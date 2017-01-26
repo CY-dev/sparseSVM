@@ -12,3 +12,4 @@ Depends: bigmemory
 Remotes: privefl/bigmemory
 Imports: parallel
 LinkingTo: Rcpp, bigmemory, BH
+RoxygenNote: 5.0.1.9000

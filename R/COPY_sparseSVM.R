@@ -1,10 +1,34 @@
 # always standardize
-COPY_sparseSVM <- function (X, y.train, ind.train, covar.train,
-                            alpha = 1, gamma = 0.1, nlambda=100, 
-                            lambda.min = `if`(nrow(X) > ncol(X), 0.01, 0.05), 
-                            lambda, screen = c("ASR", "SR", "none"), max.iter = 1000,
-                            eps = 1e-5, dfmax = ncol(X)+1, penalty.factor=rep(1, ncol(X)), 
-                            message = FALSE) {
+#' Title
+#'
+#' @param X 
+#' @param y.train 
+#' @param ind.train 
+#' @param covar.train 
+#' @param alpha 
+#' @param gamma 
+#' @param nlambda 
+#' @param lambda.min 
+#' @param lambda 
+#' @param screen 
+#' @param max.iter 
+#' @param eps 
+#' @param dfmax 
+#' @param penalty.factor 
+#' @param message 
+#'
+#' @return
+#' @export
+#'
+#' @examples
+COPY_sparseSVM <- function(X, y.train, ind.train, covar.train = NULL,
+                           alpha = 1, gamma = 0.1, nlambda=100, 
+                           lambda.min = `if`(nrow(X) > ncol(X), 0.01, 0.05), 
+                           lambda, screen = c("ASR", "SR", "none"), max.iter = 1000,
+                           eps = 1e-5, dfmax = ncol(X)+1, penalty.factor=rep(1, ncol(X)), 
+                           message = FALSE) {
+  
+  if (is.null(covar.train)) covar.train <- matrix(0, 0, 0)
   
   # Error checking
   screen <- match.arg(screen)

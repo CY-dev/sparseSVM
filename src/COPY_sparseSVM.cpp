@@ -24,28 +24,42 @@ void standardize(SubMatrixAccessor<T> macc,
   int p = macc.ncol();
   
   int i, j; 
-  double tmp, xSum, xxSum, csum_pos, csum_neg;
+  double tmp, xSum, xxSum, csum_pos, csum_neg, mj, sj;
   
-  for (j = 0; j < p; j++) {                            
-    xSum = xxSum = csum_pos = csum_neg = 0.0; 
+  for (j = 0; j < p; j++) {     
+    if (j == 0) { // do not change the intercept and include it in the model
+      shift[0] = 0;
+      scale[0] = 1;
+    } else {
+      xSum = xxSum = 0; 
+      
+      for (i = 0; i < n; i++) {
+        tmp = macc(i, j);
+        xSum += tmp;
+        xxSum += tmp * tmp;
+      }
+      
+      shift[j] = xSum / n;
+      scale[j] = sqrt((xxSum - xSum * xSum / n) / n); // not (n-1)?
+    }
     
+    if (scale[j] > 1e-6) nonconst[j] = true;
+    
+    mj = shift[j];
+    sj = scale[j];
+    csum_pos = csum_neg = 0; 
     for (i = 0; i < n; i++) {
-      tmp = macc(i, j);
-      xxSum += tmp * tmp;
+      tmp = (macc(i, j) - mj) / sj;
       if (y[i] > 0) { // y[i] == 1
         csum_pos += tmp;
       } else {        // y[i] == -1
         csum_neg += tmp;
       }
     }
-    xSum = csum_pos + csum_neg;
     
-    shift[j] = xSum / n;
-    scale[j] = sqrt((xxSum - xSum * xSum / n) / (n-1));
-    if (scale[j] > 1e-6) nonconst[j] = true;
     sx_pos[j] = csum_pos;
     sx_neg[j] = csum_neg;
-    syx[j] = csum_pos - csum_neg;      
+    syx[j] = csum_pos - csum_neg;  
   }
   
   // unscaled intercept?
@@ -116,6 +130,8 @@ List COPY_sparse_svm(SubMatrixAccessor<T> macc, NumericVector &lambda,
   // Preprocessing -> always standardize
   standardize<T>(macc, y, sx_pos, sx_neg, syx, shift, scale, nonconst);
   
+  // for (j=0; j<p; j++) printf("(%f ; %f) ", shift[j], scale[j]); //DEBUG
+  
   // scrflag = 0: no screening
   // scrflag = 1: Adaptive Strong Rule(ASR)
   // scrflag = 2: Strong Rule(SR)
@@ -126,6 +142,8 @@ List COPY_sparse_svm(SubMatrixAccessor<T> macc, NumericVector &lambda,
   } else {
     for (j=1; j<p; j++) if (!pf[j] && nonconst[j]) include[j] = true;
   }
+  
+  // printf("%f\n", sx_pos[0]); //DEBUG
   
   // Initialization
   if (2*sx_pos[0] > n) {
@@ -159,6 +177,8 @@ List COPY_sparse_svm(SubMatrixAccessor<T> macc, NumericVector &lambda,
       }
     }
   }
+  
+  // for (j=0; j<p; j++) printf("(%f ; %f) ", sx_pos[j], sx_neg[j]); //DEBUG
   
   // lambda
   if (!user) {
@@ -341,7 +361,7 @@ List COPY_sparse_svm(XPtr<BigMatrix> xpMat, const NumericVector &y,
                      const IntegerVector &row_idx,
                      const NumericMatrix &covar, NumericVector &lambda, 
                      const NumericVector &pf, double gamma, double alpha, 
-                     double thresh, double lambda_min, int nlam, 
+                     double thresh, double lambda_min,
                      int scrflag, int dfmax, int max_iter, bool user, bool message) {
   switch(xpMat->matrix_type()) {
   case 1:
