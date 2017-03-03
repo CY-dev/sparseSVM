@@ -51,7 +51,7 @@ sparseSVM <- function (X, y, alpha = 1, gamma = 0.1, nlambda=100, lambda.min = i
   saturated <- fit[[4]]
   # Eliminate saturated lambda values
   ind <- !is.na(iter)
-  weights <- weights[, ind]
+  weights <- weights[, ind, drop = FALSE]
   iter <- iter[ind]
   lambda <- lambda[ind]
   
