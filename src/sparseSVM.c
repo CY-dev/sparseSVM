@@ -284,7 +284,6 @@ static void sparse_svm(double *w, int *iter, double *lambda, int *saturated, dou
     }
     while(iter[l] < max_iter) {
       // Check dfmax
-      printf("%d non-zero elements for lambda = %f\n", nnzero, lambda[l]);
       if (nnzero > dfmax) {
         for (int ll = l; ll<nlam; ll++) iter[ll] = NA_INTEGER;
         saturated[0] = 1;
