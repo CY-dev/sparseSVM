@@ -262,6 +262,7 @@ static void sparse_svm(double *w, int *iter, double *lambda, int *saturated, dou
   
   // Solution path
   for (l=lstart; l<nlam; l++) {
+    if (*saturated) break;
     if (message) Rprintf("Lambda %d\n", l+1);
     lp = l*p;
     l1 = lambda[l]*alpha;
@@ -373,7 +374,7 @@ static void sparse_svm(double *w, int *iter, double *lambda, int *saturated, dou
             }
             z[j] = v1;
           }
-          if (w_old[j] != 0.0) nnzero++;
+          if (w[lp+j] != 0.0) nnzero++;
         }
         scrfactor /= alpha*ldiff;
         if (message) {
@@ -381,7 +382,7 @@ static void sparse_svm(double *w, int *iter, double *lambda, int *saturated, dou
           Rprintf("Variable screening factor = %f\n", scrfactor);
         }
       } else {
-        for (j=0; j<p; j++) if (w_old[j] != 0.0) nnzero++;
+        for (j=0; j<p; j++) if (w[lp+j] != 0.0) nnzero++;
       }
       if (message) Rprintf("# iterations = %d\n", iter[l]);
       if (violations==0) break;
