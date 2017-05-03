@@ -7,8 +7,8 @@
 \tabular{ll}{
 Package: \tab sparseSVM\cr
 Type: \tab Package\cr
-Version: \tab 1.1-3\cr
-Date: \tab 2016-05-13\cr
+Version: \tab 1.1-6\cr
+Date: \tab 2017-05-02\cr
 License: \tab GPL-3\cr
 }
 Accepts \code{X,y} data for binary classification and
