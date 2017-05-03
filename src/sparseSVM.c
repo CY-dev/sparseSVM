@@ -6,13 +6,17 @@
 #include "Rinternals.h"
 #include "R_ext/Rdynload.h"
 
-static double sign(double x) {
+void init_svm(double *w, double *w_old, int *iter, double *yx, double *x2, double *y, 
+    double *syx, double *r, double *pf, double *d1, double *d2, int *nonconst, 
+    double gamma, double thresh, int n, int p, int num_pos, int max_iter);
+
+double sign(double x) {
   if (x>0) return 1.0;
   else if (x<0) return -1.0;
   else return 0.0;
 }
 
-static double crossprod(double *yx, double *v, int n, int j) {
+double crossprod(double *yx, double *v, int n, int j) {
   int jn = j*n;
   double sum=0.0;
   for (int i=0;i<n;i++) sum += yx[jn+i]*v[i];
@@ -21,14 +25,12 @@ static double crossprod(double *yx, double *v, int n, int j) {
 
 // standardization of features
 static void standardize(double *x, double *y, double *x2, double *yx, 
-  double *sx_pos, double *sx_neg, double *syx, 
-  double *shift, double *scale, int *nonconst, int n, int p) 
+  double *syx, double *shift, double *scale, int *nonconst, int n, int p) 
 {
   int i, j, jn; 
-  double xm, xsd, xvar, csum_pos, csum_neg, csum;
+  double xm, xsd, xvar, csum;
   for (j=1; j<p; j++) {
-    jn = j*n; xm = 0.0; xvar = 0.0; 
-    csum_pos = 0.0; csum_neg = 0.0; csum = 0.0;
+    jn = j*n; xm = 0.0; xvar = 0.0; csum = 0.0;
     for (i=0; i<n; i++) xm += x[jn+i];
     xm /= n;
     for (i=0; i<n; i++) {
@@ -44,33 +46,24 @@ static void standardize(double *x, double *y, double *x2, double *yx,
         x[jn+i] = x[jn+i]/xsd;
         x2[jn+i] = x2[jn+i]/xvar;
         yx[jn+i] = y[i]*x[jn+i];
-        if (y[i] > 0) {
-          csum_pos += x[jn+i];
-        } else {
-          csum_neg += x[jn+i];
-        }
         csum += yx[jn+i];
       }
       shift[j] = xm;
       scale[j] = xsd;
-      sx_pos[j] = csum_pos;
-      sx_neg[j] = csum_neg;
       syx[j] = csum;      
     }
   }
+  nonconst[0] = 1;
 }
 
 // rescaling of features
 static void rescale(double *x, double *y, double *x2, double *yx, 
-  double *sx_pos, double *sx_neg, double *syx, 
-  double *shift, double *scale, int *nonconst, int n, int p) 
+  double *syx, double *shift, double *scale, int *nonconst, int n, int p) 
 {
   int i, j, jn; 
-  double cmin, cmax, crange, csum_pos, csum_neg, csum;
+  double cmin, cmax, crange, csum;
   for (j=1; j<p; j++) {
-    jn = j*n;
-    cmin = x[jn]; cmax = x[jn];
-    csum_pos = 0.0; csum_neg = 0.0; csum = 0.0;
+    jn = j*n; cmin = x[jn]; cmax = x[jn]; csum = 0.0;
     for (i=1; i<n; i++) {
       if (x[jn+i] < cmin) {
         cmin = x[jn+i];
@@ -85,20 +78,14 @@ static void rescale(double *x, double *y, double *x2, double *yx,
         x[jn+i] = (x[jn+i]-cmin)/crange;
         x2[jn+i] = pow(x[jn+i], 2);
         yx[jn+i] = y[i]*x[jn+i];
-        if (y[i] > 0) {
-          csum_pos += x[jn+i];
-        } else {
-          csum_neg += x[jn+i];
-        }
         csum += yx[jn+i];
       }
       shift[j] = cmin;
       scale[j] = crange;
-      sx_pos[j] = csum_pos;
-      sx_neg[j] = csum_neg;
       syx[j] = csum;
     }
   }
+  nonconst[0] = 1;
 }
 
 // postprocessing of feature weights
@@ -127,10 +114,8 @@ static void sparse_svm(double *w, int *iter, double *lambda, int *saturated, dou
   int nlam = nlam_[0]; int n = n_[0]; int p = p_[0]; int ppflag = ppflag_[0]; int scrflag = scrflag_[0];
   int dfmax = dfmax_[0]; int max_iter = max_iter_[0]; int user = user_[0]; int message = message_[0];
   int i, j, k, l, lstart, lp, jn, num_pos, mismatch, nnzero = 0, violations = 0, nv = 0;
-  double gi = 1.0/gamma, cmax, cmin, csum_pos, csum_neg, csum, pct, lstep, ldiff, lmax, l1, l2, v1, v2, v3, tmp, change, max_update, update, scrfactor = 1.0;  
+  double gi = 1.0/gamma, cmax, cmin, csum, pct, lstep, ldiff, lmax, l1, l2, v1, v2, v3, tmp, change, max_update, update, scrfactor = 1.0;  
   double *x2 = Calloc(n*p, double); // x^2
-  double *sx_pos = Calloc(p, double); // column sum of x where y = 1
-  double *sx_neg = Calloc(p, double); // column sum of x where y = -1
   double *yx = Calloc(n*p, double); // elementwise products: y[i] * x[i][j]
   double *syx = Calloc(p, double); // column sum of yx
   csum = 0.0; num_pos = 0;
@@ -142,8 +127,6 @@ static void sparse_svm(double *w, int *iter, double *lambda, int *saturated, dou
     if (y[i] > 0) num_pos++;
   }
   syx[0] = csum;
-  sx_pos[0] = num_pos;
-  sx_neg[0] = n-num_pos;
   
   double *shift = Calloc(p, double);
   double *scale = Calloc(p, double);
@@ -159,29 +142,23 @@ static void sparse_svm(double *w, int *iter, double *lambda, int *saturated, dou
 
   // Preprocessing
   if (ppflag == 1) {
-    standardize(x, y, x2, yx, sx_pos, sx_neg, syx, shift, scale, nonconst, n, p);
+    standardize(x, y, x2, yx, syx, shift, scale, nonconst, n, p);
   } else if (ppflag == 2) {
-    rescale(x, y, x2, yx, sx_pos, sx_neg, syx, shift, scale, nonconst, n, p);
+    rescale(x, y, x2, yx, syx, shift, scale, nonconst, n, p);
   } else {
     for (j=1; j<p; j++) {
-      jn = j*n; cmax = x[jn]; cmin = cmax; csum_pos = 0.0; csum_neg = 0.0; csum = 0.0;
+      jn = j*n; cmax = x[jn]; cmin = cmax; csum = 0.0;
       for (i=0; i<n; i++) {
         if (x[jn+i] > cmax) cmax = x[jn+i];
         else if (x[jn+i] < cmin) cmin = x[jn+i];
         x2[jn+i] = pow(x[jn+i], 2);
         yx[jn+i] = y[i]*x[jn+i];
-        if (y[i] > 0) {
-          csum_pos += x[jn+i];
-        } else {
-          csum_neg += x[jn+i];
-        }
         csum += yx[jn+i];
       }
-      sx_pos[j] = csum_pos;
-      sx_neg[j] = csum_neg;
       syx[j] = csum;
       if (cmax - cmin > 1e-6) nonconst[j] = 1;
     }
+    nonconst[0] = 1;
   }
   
   //scrflag = 0: no screening; scrflag = 1: Adaptive Strong Rule(ASR); scrflag = 2: Strong Rule(SR)
@@ -192,61 +169,18 @@ static void sparse_svm(double *w, int *iter, double *lambda, int *saturated, dou
   } else {
     for (j=1; j<p; j++) if (!pf[j] && nonconst[j]) include[j] = 1;
   }
-  
-  // Initialization
-  if (2*num_pos > n) {
-    // initial intercept = 1
-    w[0] = 1.0;
-    w_old[0] = 1.0;
-    for (i=0; i<n; i++) {
-      if (y[i] > 0) {
-        r[i] = 0.0;
-        d1[i] = 0.0;
-        d2[i] = gi;        
-      } else {
-        r[i] = 2.0;
-        d1[i] = 1.0;
-        d2[i] = 0.0;
-      }
-    }
-  } else {
-    // initial intercept = -1
-    w[0] = -1.0;
-    w_old[0] = -1.0;
-    for (i=0; i<n; i++) {
-      if (y[i] > 0) {
-        r[i] = 2.0;
-        d1[i] = 1.0;
-        d2[i] = 0.0;        
-      } else {
-        r[i] = 0.0;
-        d1[i] = 0.0;
-        d2[i] = gi;
-      }
-    }
-  }
+
+  init_svm(w, w_old, iter, yx, x2, y, syx, r, pf, d1, d2, nonconst, gamma, thresh, n, p, num_pos, max_iter);
   
   // lambda
   if (user==0) {
     lmax = 0.0;
-    if (2*num_pos > n) {
-      for (j=1; j<p; j++) {
-        if (nonconst[j]) {
-          z[j] = (2*sx_neg[j]-sx_pos[j])/(2*n);
-          if (pf[j]) {
-            tmp = fabs(z[j])/pf[j];
-            if (tmp > lmax) lmax = tmp;
-          }
-        }
-      }
-    } else {
-      for (j=1; j<p; j++) {
-        if (nonconst[j]) {
-          z[j] = (2*sx_pos[j]-sx_neg[j])/(2*n);
-          if (pf[j]) {
-            tmp = fabs(z[j])/pf[j];
-            if (tmp > lmax) lmax = tmp;
-          }
+    for (j=1; j<p; j++) {
+      if (nonconst[j]) {
+        z[j] = (crossprod(yx, d1, n, j)+syx[j])/(2.0*n);
+        if (pf[j]) {
+          tmp = fabs(z[j])/pf[j];
+          if (tmp > lmax) lmax = tmp;
         }
       }
     }
@@ -303,10 +237,10 @@ static void sparse_svm(double *w, int *iter, double *lambda, int *saturated, dou
               for (i=0; i<n; i++) {
                 v1 += yx[jn+i]*d1[i];
                 v2 += x2[jn+i]*d2[i];
-                pct += d2[i];
+                if(d2[i] > 0) pct += 1.0;
               }
-      	      pct *= gamma/n; // percentage of residuals with absolute values below gamma
-              if (pct < 0.05 || pct < 1.0/n) {
+      	      pct /= n; // percentage of residuals with absolute values below gamma
+              if (pct < 0.05 || pct < 1.0/n || v2 == 0.0) {
                 // approximate v2 with a continuation technique
                 for (i=0; i<n; i++) {
                   tmp = fabs(r[i]);
@@ -394,8 +328,6 @@ static void sparse_svm(double *w, int *iter, double *lambda, int *saturated, dou
   if (ppflag) postprocess(w, shift, scale, nonconst, nlam, p);
   
   Free(x2);
-  Free(sx_pos);
-  Free(sx_neg);
   Free(yx);
   Free(syx);
   Free(shift);
