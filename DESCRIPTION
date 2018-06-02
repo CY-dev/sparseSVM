@@ -5,7 +5,7 @@ Version: 1.1-6
 Date: 2018-06-01
 Author: Congrui Yi and Yaohui Zeng
 Maintainer: Congrui Yi <eric.ycr@gmail.com>
-Description: Fast algorithm for fitting solution paths of sparse linear SVM with lasso or elastic-net regularization generate sparse solutions.
+Description: Fast algorithm for fitting solution paths of high-dimensional Support Vector Machine with lasso or elastic-net regularization
 License: GPL-3
 NeedsCompilation: yes
 Imports: parallel
