@@ -1,8 +1,8 @@
 \name{sparseSVM-package}
 \alias{sparseSVM-package}
 \docType{package}
-\title{Solution Paths for Sparse Linear Support Vector Machine with Lasso or ELastic-Net Regularization}
-\description{Fast algorithm for fitting solution paths for sparse linear SVM regularized by lasso or elastic-net that generate sparse solutions.}
+\title{Solution Paths for Sparse High-dimensional Support Vector Machine with Lasso or Elastic-Net Regularization}
+\description{Fast algorithm for fitting solution paths for sparse SVM regularized by lasso or elastic-net that generate sparse solutions.}
 \details{
 \tabular{ll}{
 Package: \tab sparseSVM\cr
@@ -13,6 +13,13 @@ License: \tab GPL-3\cr
 }
 Accepts \code{X,y} data for binary classification and
 produces the solution path over a grid of values of the regularization parameter \code{lambda}. Also provides functions for plotting, prediction and parallelized cross-validation.
+}
+
+\references{Yi, C. and Huang, J. (2017) 
+  \emph{Semismooth Newton Coordinate Descent Algorithm for 
+  Elastic-Net Penalized Huber Loss Regression and Quantile Regression},
+  \url{https://www.tandfonline.com/doi/abs/10.1080/10618600.2016.1256816?journalCode=ucgs20} \cr
+  \emph{Journal of Computational and Graphical Statistics} \cr
 }
 \author{
 Congrui Yi and Yaohui Zeng \cr
