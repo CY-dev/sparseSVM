@@ -51,7 +51,7 @@ The function returns an object of S3 class "cv.sparseSVM", which is a list conta
 
 \author{
 Congrui Yi and Yaohui Zeng \cr
-Maintainer: Congrui Yi <congrui-yi@uiowa.edu>
+Maintainer: Congrui Yi <eric.ycr@gmail.com>
 }
 
 \seealso{

@@ -8,7 +8,7 @@
 Package: \tab sparseSVM\cr
 Type: \tab Package\cr
 Version: \tab 1.1-6\cr
-Date: \tab 2017-05-02\cr
+Date: \tab 2018-06-01\cr
 License: \tab GPL-3\cr
 }
 Accepts \code{X,y} data for binary classification and
@@ -16,7 +16,7 @@ produces the solution path over a grid of values of the regularization parameter
 }
 \author{
 Congrui Yi and Yaohui Zeng \cr
-Maintainer: Congrui Yi <congrui-yi@uiowa.edu>
+Maintainer: Congrui Yi <eric.ycr@gmail.com>
 }
 \examples{
 X = matrix(rnorm(1000*100), 1000, 100)

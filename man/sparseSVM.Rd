@@ -86,7 +86,7 @@ sparseSVM(X, y, alpha = 1, gamma = 0.1, nlambda=100,
 
 \author{
 Congrui Yi and Yaohui Zeng \cr
-Maintainer: Congrui Yi <congrui-yi@uiowa.edu>
+Maintainer: Congrui Yi <eric.ycr@gmail.com>
 }
 \seealso{\code{\link{plot.sparseSVM}}, \code{\link{cv.sparseSVM}}}
 \examples{

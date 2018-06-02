@@ -20,7 +20,7 @@
 }
 \author{
 Congrui Yi and Yaohui Zeng \cr
-Maintainer: Congrui Yi <congrui-yi@uiowa.edu>
+Maintainer: Congrui Yi <eric.ycr@gmail.com>
 }
 \seealso{\code{\link{sparseSVM}}}
 \examples{
