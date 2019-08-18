@@ -9,4 +9,4 @@ To install:
 * the latest version (require `devtools`): `install_github("CY-dev/sparseSVM")`
 
 To report bugs：
-* send email to: Congrui Yi <congrui-yi@uiowa.edu> and Yaohui Zeng <yaohui-zeng@uiowa.edu>
+* send email to: Congrui Yi <congrui@amazon.com> and Yaohui Zeng <yaohui-zeng@uiowa.edu>
