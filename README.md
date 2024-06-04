@@ -6,6 +6,7 @@
 Solution Paths of Sparse Linear Support Vector Machine with Lasso or ELastic-Net Regularization
 
 To install:
+* the released version from CRAN: install.packages("sparseSVM")
 * the latest version (require `devtools`): `install_github("CY-dev/sparseSVM")`
 
 To report bugs：
