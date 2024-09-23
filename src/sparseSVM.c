@@ -115,9 +115,9 @@ static void sparse_svm(double *w, int *iter, double *lambda, int *saturated, dou
   int dfmax = dfmax_[0]; int max_iter = max_iter_[0]; int user = user_[0]; int message = message_[0];
   int i, j, k, l, lstart, lp, jn, num_pos, mismatch, nnzero = 0, violations = 0, nv = 0;
   double gi = 1.0/gamma, cmax, cmin, csum, pct, lstep, ldiff, lmax, l1, l2, v1, v2, v3, tmp, change, max_update, update, scrfactor = 1.0;  
-  double *x2 = Calloc(n*p, double); // x^2
-  double *yx = Calloc(n*p, double); // elementwise products: y[i] * x[i][j]
-  double *syx = Calloc(p, double); // column sum of yx
+  double *x2 = R_Calloc(n*p, double); // x^2
+  double *yx = R_Calloc(n*p, double); // elementwise products: y[i] * x[i][j]
+  double *syx = R_Calloc(p, double); // column sum of yx
   csum = 0.0; num_pos = 0;
   // intercept column
   for (i=0; i<n; i++) {
@@ -128,17 +128,17 @@ static void sparse_svm(double *w, int *iter, double *lambda, int *saturated, dou
   }
   syx[0] = csum;
   
-  double *shift = Calloc(p, double);
-  double *scale = Calloc(p, double);
-  double *w_old = Calloc(p, double); 
-  double *r = Calloc(n, double); // residual: 1-y(xw+b)
-  double *s = Calloc(p, double);
-  double *d1 = Calloc(n, double);
-  double *d2 = Calloc(n, double);
-  double *z = Calloc(p, double); // partial derivative used for screening: X^t*d1/n
+  double *shift = R_Calloc(p, double);
+  double *scale = R_Calloc(p, double);
+  double *w_old = R_Calloc(p, double); 
+  double *r = R_Calloc(n, double); // residual: 1-y(xw+b)
+  double *s = R_Calloc(p, double);
+  double *d1 = R_Calloc(n, double);
+  double *d2 = R_Calloc(n, double);
+  double *z = R_Calloc(p, double); // partial derivative used for screening: X^t*d1/n
   double cutoff;
-  int *include = Calloc(p, int);
-  int *nonconst = Calloc(p, int);
+  int *include = R_Calloc(p, int);
+  int *nonconst = R_Calloc(p, int);
 
   // Preprocessing
   if (ppflag == 1) {
@@ -327,19 +327,19 @@ static void sparse_svm(double *w, int *iter, double *lambda, int *saturated, dou
   // Postprocessing
   if (ppflag) postprocess(w, shift, scale, nonconst, nlam, p);
   
-  Free(x2);
-  Free(yx);
-  Free(syx);
-  Free(shift);
-  Free(scale);
-  Free(w_old);
-  Free(r);
-  Free(s);
-  Free(d1);
-  Free(d2);
-  Free(z);
-  Free(include);
-  Free(nonconst);
+  R_Free(x2);
+  R_Free(yx);
+  R_Free(syx);
+  R_Free(shift);
+  R_Free(scale);
+  R_Free(w_old);
+  R_Free(r);
+  R_Free(s);
+  R_Free(d1);
+  R_Free(d2);
+  R_Free(z);
+  R_Free(include);
+  R_Free(nonconst);
 }
 
 static const R_CMethodDef cMethods[] = {
