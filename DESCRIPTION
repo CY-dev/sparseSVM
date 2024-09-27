@@ -1,11 +1,18 @@
 Package: sparseSVM
 Type: Package
-Title: Solution Paths of Sparse High-dimensional Support Vector Machine with Lasso or Elastic-Net Regularization
+Title: Solution Paths of Sparse High-Dimensional Support Vector Machine with Lasso or Elastic-Net Regularization
 Version: 1.1-7
-Date: 2024-09-23
-Author: Congrui Yi and Yaohui Zeng
-Maintainer: Congrui Yi <eric.ycr@gmail.com>
-Description: Fast algorithm for fitting solution paths of sparse SVM models with lasso or elastic-net regularization
+Date: 2024-09-26
+Authors@R: c(person(given = "Congrui",
+                    family = "Yi",
+                    role = c("aut", "cre"),
+                    email = "eric.ycr@gmail.com"),
+             person(given = "Yaohui",
+                    family = "Zeng",
+                    role = "aut",
+                    email = "yaohui.zeng@gmail.com"))
+Description: Offers a fast algorithm for fitting solution paths of sparse SVM models with lasso or elastic-net regularization. Reference: Congrui Yi and Jian Huang (2017) <doi:10.1080/10618600.2016.1256816>.
 License: GPL-3
 NeedsCompilation: yes
+URL: https://github.com/CY-dev/sparseSVM
 Imports: parallel

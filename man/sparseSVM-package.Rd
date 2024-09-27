@@ -18,7 +18,7 @@ produces the solution path over a grid of values of the regularization parameter
 \references{Yi, C. and Huang, J. (2017) 
   \emph{Semismooth Newton Coordinate Descent Algorithm for 
   Elastic-Net Penalized Huber Loss Regression and Quantile Regression},
-  \url{https://www.tandfonline.com/doi/abs/10.1080/10618600.2016.1256816?journalCode=ucgs20} \cr
+  \doi{10.1080/10618600.2016.1256816} \cr
   \emph{Journal of Computational and Graphical Statistics} \cr
 }
 \author{
