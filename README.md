@@ -1,6 +1,7 @@
-[![Build Status](https://travis-ci.org/CY-dev/sparseSVM.svg?branch=master)](https://travis-ci.org/CY-dev/sparseSVM)
-[![CRAN_Status_Badge](http://www.r-pkg.org/badges/version/sparseSVM)](https://CRAN.R-project.org/package=sparseSVM)
-[![CRAN RStudio mirror downloads](http://cranlogs.r-pkg.org/badges/grand-total/sparseSVM)](http://www.r-pkg.org/pkg/sparseSVM)
+<!-- badges: start -->
+[![CRAN](https://img.shields.io/cran/v/sparseSVM?logo=R)](https://cran.r-project.org/package=sparseSVM)
+[![Downloads](https://cranlogs.r-pkg.org/badges/grand-total/sparseSVM)](https://cranlogs.r-pkg.org/badges/grand-total/sparseSVM)
+<!-- badges: end -->
 
 # sparseSVM
 Solution Paths of Sparse Linear Support Vector Machine with Lasso or ELastic-Net Regularization
